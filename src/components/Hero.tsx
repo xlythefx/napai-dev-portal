@@ -72,8 +72,9 @@ const Hero = () => {
               variants={itemVariants}
               className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed"
             >
-              From custom platforms and AI automation to our own SaaS products
-              — built for teams that need to move now.
+              Customized systems, full AI agentic integrations, automation
+              pipelines, and our own line of SaaS — engineered end-to-end for
+              teams that need to move now.
             </motion.p>
 
             <motion.div
@@ -98,103 +99,52 @@ const Hero = () => {
               </a>
             </motion.div>
 
-            {/* TODO: replace each placeholder with a real client/partner SVG */}
-            <motion.div variants={itemVariants} className="pt-10 space-y-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                Trusted by teams building with us
-              </p>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={i}
-                    className="h-8 w-24 rounded-md border border-dashed border-border flex items-center justify-center text-[10px] uppercase tracking-wider text-muted-foreground/70 hover:text-foreground hover:border-foreground/40 transition-colors"
+            {/* Capability chips */}
+            <motion.div variants={itemVariants} className="pt-6">
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  "Customized Systems",
+                  "AI Agentic Integration",
+                  "Automation Pipelines",
+                  "SaaS Products",
+                ].map((label) => (
+                  <span
+                    key={label}
+                    className="px-3 py-1.5 text-xs font-medium rounded-full border border-border bg-card/60 backdrop-blur-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
                   >
-                    Your Logo
-                  </div>
+                    {label}
+                  </span>
                 ))}
               </div>
             </motion.div>
           </div>
 
-          {/* Right: isometric placeholder */}
-          {/* TODO: replace with real isometric illustration — drop image into src/assets/ and import here */}
+          {/* Right: hero illustration */}
           <motion.div
             variants={itemVariants}
             className="lg:col-span-5 relative"
           >
-            <div className="relative aspect-[4/5] w-full max-w-md mx-auto rounded-3xl border border-border bg-card/40 backdrop-blur-sm shadow-xl overflow-hidden">
-              {/* layered isometric stub */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <svg
-                  viewBox="0 0 200 200"
-                  className="w-3/4 h-3/4"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden
-                >
-                  {/* base plane */}
-                  <path
-                    d="M100 150 L160 120 L100 90 L40 120 Z"
-                    fill="hsl(var(--primary))"
-                    fillOpacity="0.10"
-                    stroke="hsl(var(--primary))"
-                    strokeOpacity="0.25"
-                  />
-                  {/* mid plane */}
-                  <path
-                    d="M100 120 L160 90 L100 60 L40 90 Z"
-                    fill="hsl(var(--primary))"
-                    fillOpacity="0.20"
-                    stroke="hsl(var(--primary))"
-                    strokeOpacity="0.35"
-                  />
-                  {/* top plane */}
-                  <path
-                    d="M100 90 L160 60 L100 30 L40 60 Z"
-                    fill="hsl(var(--primary))"
-                    fillOpacity="0.40"
-                    stroke="hsl(var(--primary))"
-                    strokeOpacity="0.5"
-                  />
-                  {/* connector lines */}
-                  <line
-                    x1="100"
-                    y1="30"
-                    x2="100"
-                    y2="150"
-                    stroke="hsl(var(--primary))"
-                    strokeOpacity="0.3"
-                    strokeDasharray="2 4"
-                  />
-                </svg>
-              </div>
+            <div className="relative w-full max-w-lg mx-auto">
+              {/* glow behind image */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.15),transparent_60%)] blur-2xl" />
 
-              {/* gradient sheen */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent" />
+              <motion.img
+                src="/isometric-images/hero.png"
+                alt="Digital systems illustration"
+                className="relative w-full h-auto object-contain drop-shadow-2xl"
+                animate={{ y: [0, -10, 0] }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 6,
+                  ease: "easeInOut",
+                }}
+              />
 
-              {/* floating chip: dashboard */}
-              <motion.div
-                animate={{ y: [0, -6, 0] }}
-                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                className="absolute top-6 right-6 rounded-xl border border-border bg-background/90 backdrop-blur p-3 shadow-lg w-36"
-              >
-                <p className="text-[10px] font-mono text-muted-foreground mb-2">
-                  dashboard.tsx
-                </p>
-                <div className="flex items-end gap-1 h-8">
-                  <div className="flex-1 bg-primary/30 rounded-sm" style={{ height: "40%" }} />
-                  <div className="flex-1 bg-primary/50 rounded-sm" style={{ height: "70%" }} />
-                  <div className="flex-1 bg-primary/40 rounded-sm" style={{ height: "55%" }} />
-                  <div className="flex-1 bg-primary rounded-sm" style={{ height: "100%" }} />
-                  <div className="flex-1 bg-primary/60 rounded-sm" style={{ height: "80%" }} />
-                </div>
-              </motion.div>
-
-              {/* floating chip: automation */}
+              {/* floating chip: automation status */}
               <motion.div
                 animate={{ y: [0, -6, 0] }}
                 transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: 0.5 }}
-                className="absolute bottom-8 left-6 rounded-xl border border-border bg-background/90 backdrop-blur p-3 shadow-lg flex items-center gap-2.5"
+                className="absolute bottom-4 left-0 sm:left-2 rounded-xl border border-border bg-background/95 backdrop-blur p-3 shadow-lg flex items-center gap-2.5"
               >
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 animate-ping" />
@@ -202,7 +152,7 @@ const Hero = () => {
                 </span>
                 <div>
                   <p className="text-[10px] font-mono text-muted-foreground leading-tight">
-                    automation
+                    agentic.flow
                   </p>
                   <p className="text-xs font-medium leading-tight">running</p>
                 </div>

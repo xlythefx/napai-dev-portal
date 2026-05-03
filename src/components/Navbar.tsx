@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X, Brain, ChevronDown, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
@@ -15,8 +21,8 @@ const Navbar = () => {
     { name: "Home", path: "/" },
     { name: "Services", path: "/#services" },
     { name: "Projects", path: "/#projects" },
+    { name: "Products", path: "#products-menu", type: "products" },
     { name: "Tools", path: "/tools" },
-    { name: "Partners", path: "/#partners" },
     { name: "Contact", path: "/#contact" },
   ];
 
@@ -46,7 +52,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center space-x-2 group">
-            <Sparkles className="w-6 h-6 text-primary group-hover:rotate-180 transition-transform duration-500" />
+            <Brain className="w-6 h-6 text-primary group-hover:scale-110 transition-transform duration-300" />
             <span className="text-2xl font-bold tracking-tighter">
               Nap<span className="text-primary">.AI</span>
             </span>
@@ -55,7 +61,33 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1">
             {navLinks.map((link) =>
-              link.path.startsWith("/#") ? (
+              link.type === "products" ? (
+                <DropdownMenu key={link.name}>
+                  <DropdownMenuTrigger className="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-300 outline-none data-[state=open]:text-primary data-[state=open]:bg-primary/10">
+                    {link.name}
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-56">
+                    <DropdownMenuItem asChild>
+                      <a
+                        href="https://flowehn.com"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex cursor-pointer items-center justify-between"
+                      >
+                        <span>Flowehn.com</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem disabled className="justify-between">
+                      <span>Other</span>
+                      <span className="text-xs text-muted-foreground">
+                        Coming soon
+                      </span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : link.path.startsWith("/#") ? (
                 <a
                   key={link.name}
                   href={link.path}
@@ -91,16 +123,10 @@ const Navbar = () => {
                 </Button>
               </Link>
             )}
-            {isAuthenticated ? (
+            {isAuthenticated && (
               <Link to="/tools">
                 <Button variant="outline" size="lg" className="rounded-full">
                   Tools
-                </Button>
-              </Link>
-            ) : (
-              <Link to="/auth">
-                <Button variant="outline" size="lg" className="rounded-full">
-                  Login
                 </Button>
               </Link>
             )}
@@ -132,7 +158,35 @@ const Navbar = () => {
             >
               <div className="py-4 space-y-2">
                 {navLinks.map((link, index) =>
-                  link.path.startsWith("/#") ? (
+                  link.type === "products" ? (
+                    <motion.div
+                      key={link.name}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="px-4 py-3 rounded-lg bg-primary/5"
+                    >
+                      <p className="text-sm font-medium text-foreground mb-2">
+                        Products
+                      </p>
+                      <div className="space-y-1">
+                        <a
+                          href="https://flowehn.com"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between rounded-md py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <span>Flowehn.com</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                        <div className="flex items-center justify-between rounded-md py-2 text-sm text-muted-foreground/60">
+                          <span>Other</span>
+                          <span className="text-xs">Coming soon</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : link.path.startsWith("/#") ? (
                     <motion.a
                       key={link.name}
                       href={link.path}
@@ -178,16 +232,10 @@ const Navbar = () => {
                       </Button>
                     </Link>
                   )}
-                  {isAuthenticated ? (
+                  {isAuthenticated && (
                     <Link to="/tools" onClick={() => setIsOpen(false)}>
                       <Button variant="outline" size="lg" className="w-full rounded-full">
                         Tools
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Link to="/auth" onClick={() => setIsOpen(false)}>
-                      <Button variant="outline" size="lg" className="w-full rounded-full">
-                        Login
                       </Button>
                     </Link>
                   )}

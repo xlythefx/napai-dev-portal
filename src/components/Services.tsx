@@ -1,59 +1,101 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Brain, Globe, Cloud, Code, LineChart, Shield, Sparkles, Zap, Target, Rocket } from "lucide-react";
+import {
+  Brain,
+  Globe,
+  Code,
+  Shield,
+  Zap,
+  Target,
+  Rocket,
+  ArrowUpRight,
+  Workflow,
+  Palette,
+  BookOpen,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { IconCloud } from "@/components/ui/interactive-icon-cloud";
 
-const services = [
+type Service = {
+  icon: typeof Brain;
+  title: string;
+  description: string;
+  category: "Build" | "Automate" | "Scale" | "Advise";
+  span?: "wide" | "tall";
+};
+
+const services: Service[] = [
   {
     icon: Brain,
-    title: "AI Solutions",
-    description: "Leverage artificial intelligence to automate processes and unlock unprecedented insights",
-  },
-  {
-    icon: Globe,
-    title: "Web Development",
-    description: "Modern, lightning-fast websites built with cutting-edge technologies",
-  },
-  {
-    icon: Cloud,
-    title: "Cloud Infrastructure",
-    description: "Scalable cloud architecture that grows with your business",
+    title: "AI & Agentic Systems",
+    description:
+      "Custom agents, copilots, and pipelines that act on real business data — not chat toys.",
+    category: "Automate",
+    span: "wide",
   },
   {
     icon: Code,
     title: "Custom Software",
-    description: "Bespoke software solutions engineered for your unique challenges",
+    description:
+      "Bespoke platforms engineered for your workflows, integrations, and edge cases.",
+    category: "Build",
   },
   {
-    icon: LineChart,
-    title: "Data Analytics",
-    description: "Transform raw data into strategic business intelligence",
+    icon: Globe,
+    title: "Web & Mobile",
+    description:
+      "Fast, accessible, beautifully crafted apps across every screen.",
+    category: "Build",
   },
+  {
+    icon: Workflow,
+    title: "AI Automation",
+    description:
+      "No-code and code-based automations that take repetitive work off your team's plate.",
+    category: "Automate",
+  },
+  // IconCloud (square 2x2) is rendered between index 4 and 5 below
   {
     icon: Shield,
-    title: "Cybersecurity",
-    description: "Enterprise-grade security protecting your digital assets",
-  },
-  {
-    icon: Sparkles,
-    title: "Digital Transformation",
-    description: "End-to-end digital transformation for modern businesses",
+    title: "Security & Compliance",
+    description:
+      "Audit-ready foundations — SSO, RBAC, encryption, monitoring, the lot.",
+    category: "Scale",
   },
   {
     icon: Zap,
-    title: "Performance Optimization",
-    description: "Maximize efficiency with performance-first engineering",
+    title: "Performance Engineering",
+    description:
+      "Profiling, optimization, and rework on systems that need to be faster.",
+    category: "Scale",
   },
   {
     icon: Target,
-    title: "Strategy Consulting",
-    description: "Data-driven strategies to accelerate growth and ROI",
+    title: "Strategy & Discovery",
+    description:
+      "Workshops and roadmaps that align tech investment with business outcomes.",
+    category: "Advise",
   },
   {
     icon: Rocket,
-    title: "Startup Solutions",
-    description: "Launch faster with MVPs designed for rapid iteration",
+    title: "MVPs & Product Launches",
+    description:
+      "From zero to validated launch — fast iteration loops with real users.",
+    category: "Build",
+  },
+  {
+    icon: BookOpen,
+    title: "Research Papers",
+    description:
+      "Technical writeups, white papers, and applied research — clear, sourced, and rigorous.",
+    category: "Advise",
+    span: "wide",
+  },
+  {
+    icon: Palette,
+    title: "Graphics Design",
+    description:
+      "Brand systems, UI design, marketing assets — visuals that look the part.",
+    category: "Build",
   },
 ];
 
@@ -90,95 +132,169 @@ const techSlugs = [
   "figma",
 ];
 
+const categoryStyles: Record<Service["category"], string> = {
+  Build: "from-primary/15 to-transparent",
+  Automate: "from-emerald-500/15 to-transparent",
+  Scale: "from-blue-500/15 to-transparent",
+  Advise: "from-amber-500/15 to-transparent",
+};
+
+const categoryDot: Record<Service["category"], string> = {
+  Build: "bg-primary",
+  Automate: "bg-emerald-500",
+  Scale: "bg-blue-500",
+  Advise: "bg-amber-500",
+};
+
+const ServiceCard = ({ service, index }: { service: Service; index: number }) => {
+  const Icon = service.icon;
+  const spanClass =
+    service.span === "wide"
+      ? "md:col-span-2"
+      : service.span === "tall"
+      ? "md:row-span-2"
+      : "";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.5, delay: Math.min(index * 0.05, 0.3) }}
+      className={`group relative ${spanClass}`}
+    >
+      <div className="relative h-full overflow-hidden rounded-2xl border border-border bg-card hover:border-foreground/30 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl">
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${categoryStyles[service.category]} opacity-60 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}
+        />
+
+        <span className="absolute top-5 right-5 text-xs font-mono text-muted-foreground/60 tabular-nums">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+
+        <div className="relative p-7 flex flex-col h-full min-h-[220px]">
+          <div className="flex items-center gap-1.5 mb-5">
+            <span className={`w-1.5 h-1.5 rounded-full ${categoryDot[service.category]}`} />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              {service.category}
+            </span>
+          </div>
+
+          <div className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center mb-5 group-hover:bg-foreground group-hover:border-foreground transition-all duration-500">
+            <Icon className="w-5 h-5 text-foreground group-hover:text-background transition-colors duration-500" />
+          </div>
+
+          <h3 className="text-xl font-bold tracking-tight mb-2 leading-tight">
+            {service.title}
+          </h3>
+          <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+            {service.description}
+          </p>
+
+          <div className="mt-5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+            <span>Learn more</span>
+            <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const TechCloudTile = () => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.95 }}
+    whileInView={{ opacity: 1, scale: 1 }}
+    viewport={{ once: true, margin: "-50px" }}
+    transition={{ duration: 0.6 }}
+    className="relative md:col-span-2 md:row-span-2"
+  >
+    <div className="relative h-full overflow-hidden rounded-2xl border border-border bg-card/60 backdrop-blur-sm hover:border-foreground/30 transition-colors duration-500">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.08),transparent_70%)] pointer-events-none" />
+      <div className="absolute top-5 left-5 right-5 flex items-center justify-between z-10">
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Tech we master
+          </span>
+        </div>
+        <span className="text-xs font-mono text-muted-foreground/60 tabular-nums">
+          {techSlugs.length}+
+        </span>
+      </div>
+
+      <div className="relative w-full h-full flex items-center justify-center pt-8">
+        <IconCloud iconSlugs={techSlugs} />
+      </div>
+    </div>
+  </motion.div>
+);
+
 const Services = () => {
   return (
-    <section id="services" className="py-32 bg-muted/30 relative overflow-hidden">
-      {/* Flickering Grid Background */}
+    <section
+      id="services"
+      className="py-32 bg-muted/20 relative overflow-hidden"
+    >
       <FlickeringGrid
         className="absolute inset-0 z-0"
         squareSize={4}
-        gridGap={6}
+        gridGap={8}
         color="hsl(var(--primary))"
-        maxOpacity={0.08}
-        flickerChance={0.15}
+        maxOpacity={0.04}
+        flickerChance={0.08}
       />
-      
-      {/* Background Elements */}
-      <div className="absolute inset-0 opacity-5 z-0">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary rounded-full blur-3xl" />
-      </div>
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.05),transparent_70%)] pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center max-w-3xl mx-auto mb-20"
-          data-aos="fade-up"
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto mb-16"
         >
-          <h2 className="text-5xl md:text-7xl font-bold mb-6 tracking-tighter">
-            Our <span className="text-primary">Services</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/15 mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            <span className="text-xs font-medium tracking-wide uppercase">
+              What we do
+            </span>
+          </div>
+          <h2 className="text-4xl md:text-6xl font-bold mb-5 tracking-tighter leading-tight">
+            Services for teams that{" "}
+            <span className="text-primary">build serious things</span>
           </h2>
-          <p className="text-xl text-muted-foreground">
-            Comprehensive digital solutions engineered to accelerate your business growth
+          <p className="text-lg text-muted-foreground">
+            We build, automate, scale, and advise — across the full lifecycle of
+            a digital system.
           </p>
-        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-          {services.map((service, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              data-aos="fade-up"
-              data-aos-delay={index * 100}
-            >
-              <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-border/50 backdrop-blur-sm bg-card/50 h-full">
-                <CardContent className="p-6 space-y-4">
-                  <motion.div
-                    whileHover={{ rotate: 360, scale: 1.1 }}
-                    transition={{ duration: 0.6 }}
-                    className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-all duration-500"
-                  >
-                    <service.icon className="w-7 h-7 text-primary group-hover:text-primary-foreground transition-colors duration-500" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold group-hover:text-primary transition-colors">
-                    {service.title}
-                  </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {service.description}
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Technology Stack Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-32 text-center"
-          data-aos="fade-up"
-          data-aos-delay="600"
-        >
-          <h3 className="text-3xl md:text-4xl font-bold mb-8 tracking-tighter">
-            Technologies We <span className="text-primary">Master</span>
-          </h3>
-          <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Built with cutting-edge technologies and industry best practices
-          </p>
-          
-          <div className="relative flex items-center justify-center overflow-hidden rounded-lg border bg-background/50 backdrop-blur-sm max-w-4xl mx-auto h-96">
-            <IconCloud iconSlugs={techSlugs} />
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-8">
+            {(Object.keys(categoryDot) as Array<Service["category"]>).map((c) => (
+              <div key={c} className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${categoryDot[c]}`} />
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  {c}
+                </span>
+              </div>
+            ))}
           </div>
         </motion.div>
+
+        {/* Bento grid with embedded tech cloud square */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5 auto-rows-[minmax(220px,auto)]">
+          {services.slice(0, 4).map((service, index) => (
+            <ServiceCard key={service.title} service={service} index={index} />
+          ))}
+          <TechCloudTile />
+          {services.slice(4).map((service, index) => (
+            <ServiceCard
+              key={service.title}
+              service={service}
+              index={index + 4}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
