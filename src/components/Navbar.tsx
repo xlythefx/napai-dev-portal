@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu, X, Brain, ChevronDown, ExternalLink } from "lucide-react";
+import { Menu, X, ChevronDown, ExternalLink, Smartphone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
@@ -22,7 +22,7 @@ const Navbar = () => {
     { name: "Services", path: "/#services" },
     { name: "Projects", path: "/#projects" },
     { name: "Products", path: "#products-menu", type: "products" },
-    { name: "Tools", path: "/tools" },
+    { name: "Tools", path: "/developer-portal" },
     { name: "Contact", path: "/#contact" },
   ];
 
@@ -52,7 +52,11 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center space-x-2 group">
-            <Brain className="w-6 h-6 text-primary group-hover:scale-110 transition-transform duration-300" />
+            <img
+              src="/assets/logonew.png"
+              alt="Nap.AI"
+              className="w-8 h-8 object-contain group-hover:scale-110 transition-transform duration-300"
+            />
             <span className="text-2xl font-bold tracking-tighter">
               Nap<span className="text-primary">.AI</span>
             </span>
@@ -68,6 +72,16 @@ const Navbar = () => {
                     <ChevronDown className="w-3.5 h-3.5" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="center" className="w-56">
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/products/quantab"
+                        className="flex cursor-pointer items-center gap-2"
+                      >
+                        <Smartphone className="w-3.5 h-3.5" />
+                        <span className="flex-1">QuanTab</span>
+                        <span className="text-xs text-muted-foreground">SaaS</span>
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <a
                         href="https://flowehn.com"
@@ -170,6 +184,15 @@ const Navbar = () => {
                         Products
                       </p>
                       <div className="space-y-1">
+                        <Link
+                          to="/products/quantab"
+                          className="flex items-center gap-2 rounded-md py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <Smartphone className="w-3.5 h-3.5" />
+                          <span className="flex-1">QuanTab</span>
+                          <span className="text-xs text-muted-foreground">SaaS</span>
+                        </Link>
                         <a
                           href="https://flowehn.com"
                           target="_blank"

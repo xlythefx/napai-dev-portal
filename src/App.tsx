@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { ConfirmHost } from "@/components/ui/confirm-dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -8,6 +9,7 @@ import { AdminRoute } from "@/components/AdminRoute";
 import Index from "./pages/Index";
 import Gallery from "./pages/Gallery";
 import Auth from "./pages/Auth";
+import DeveloperPortal from "./pages/DeveloperPortal";
 import DeveloperSignup from "./pages/DeveloperSignup";
 import Tools from "./pages/Tools";
 import FinanceApp from "./pages/tools/FinanceApp";
@@ -29,6 +31,14 @@ import AdminTimeTrackerScreenshots from "./pages/admin/AdminTimeTrackerScreensho
 import AdminTimeTrackerSettings from "./pages/admin/AdminTimeTrackerSettings";
 import AdminProjects from "./pages/admin/AdminProjects";
 import AdminFinance from "./pages/admin/AdminFinance";
+import TabletDashboard from "./pages/admin/TabletDashboard";
+import TabletKeys from "./pages/admin/TabletKeys";
+import TabletKeyDetail from "./pages/admin/TabletKeyDetail";
+import TabletDevices from "./pages/admin/TabletDevices";
+import TabletProvisioning from "./pages/admin/TabletProvisioning";
+import TabletApkVersions from "./pages/admin/TabletApkVersions";
+import VendotabLanding from "./pages/products/Vendotab";
+import VendotabTrial from "./pages/products/VendotabTrial";
 import TimeTracker from "./pages/tools/TimeTracker";
 import NotFound from "./pages/NotFound";
 
@@ -39,11 +49,15 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <ConfirmHost />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/products/quantab" element={<VendotabLanding />} />
+          <Route path="/products/quantab/trial" element={<VendotabTrial />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/developer-portal" element={<DeveloperPortal />} />
           <Route path="/developer-signup" element={<DeveloperSignup />} />
           <Route
             path="/admin"
@@ -63,6 +77,12 @@ const App = () => (
             <Route path="time-tracker/sessions/:sessionId" element={<AdminTimeTrackerSession />} />
             <Route path="projects" element={<AdminProjects />} />
             <Route path="finance" element={<AdminFinance />} />
+            <Route path="tablet" element={<TabletDashboard />} />
+            <Route path="tablet/keys" element={<TabletKeys />} />
+            <Route path="tablet/keys/:id" element={<TabletKeyDetail />} />
+            <Route path="tablet/devices" element={<TabletDevices />} />
+            <Route path="tablet/provisioning" element={<TabletProvisioning />} />
+            <Route path="tablet/apk-versions" element={<TabletApkVersions />} />
           </Route>
           <Route
             path="/tools"

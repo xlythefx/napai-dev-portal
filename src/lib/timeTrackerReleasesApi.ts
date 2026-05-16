@@ -18,6 +18,7 @@ export interface TimeTrackerRelease {
   sha256: string | null;
   notes: string | null;
   is_current: boolean;
+  auto_download: boolean;
   uploaded_at: string;
   download_count: number;
   uploaded_by_email: string | null;
@@ -65,6 +66,7 @@ export async function uploadRelease(params: {
   notes?: string;
   platform?: ReleasePlatform;
   setCurrent?: boolean;
+  autoDownload?: boolean;
   file: File;
   onProgress?: (loaded: number, total: number) => void;
 }): Promise<TimeTrackerRelease> {
@@ -74,6 +76,7 @@ export async function uploadRelease(params: {
   form.set("platform", params.platform ?? "win");
   if (params.notes) form.set("notes", params.notes);
   if (params.setCurrent) form.set("set_current", "1");
+  if (params.autoDownload) form.set("auto_download", "1");
   form.set("installer", params.file);
 
   // Use XMLHttpRequest so we can report upload progress (fetch can't, in browsers).

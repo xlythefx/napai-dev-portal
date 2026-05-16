@@ -64,7 +64,7 @@ const thirdColumn = testimonials.slice(6, 9);
 
 const Testimonials = () => {
   return (
-    <section className="bg-background py-32 relative overflow-hidden">
+    <section data-section="testimonials" className="bg-background py-32 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,hsl(var(--primary)/0.04),transparent_70%)] pointer-events-none" />
 
       <div className="container relative z-10 mx-auto px-4">

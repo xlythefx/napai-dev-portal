@@ -20,6 +20,10 @@ import {
   Gauge,
   TrendingUp,
   Menu,
+  Smartphone,
+  KeyRound,
+  QrCode,
+  Package,
 } from "lucide-react";
 
 type LeafItem = {
@@ -60,11 +64,32 @@ const navItems: NavItem[] = [
       { type: "leaf", path: "/admin/time-tracker/settings", label: "Settings", icon: SettingsIcon },
     ],
   },
+  {
+    type: "group",
+    key: "tablet",
+    label: "Tablet SaaS",
+    icon: Smartphone,
+    matchPrefixes: ["/admin/tablet"],
+    children: [
+      { type: "leaf", path: "/admin/tablet", label: "Dashboard", icon: Gauge },
+      { type: "leaf", path: "/admin/tablet/keys", label: "License Keys", icon: KeyRound },
+      { type: "leaf", path: "/admin/tablet/devices", label: "Devices", icon: Smartphone },
+      { type: "leaf", path: "/admin/tablet/provisioning", label: "Provisioning", icon: QrCode },
+      { type: "leaf", path: "/admin/tablet/apk-versions", label: "APK Versions", icon: Package },
+    ],
+  },
 ];
 
+// Routes where sub-paths should NOT bubble the highlight back to the parent leaf.
+// e.g. when on /admin/tablet/devices, /admin/tablet (Tablet > Dashboard) must NOT light up.
+const EXACT_ONLY_PATHS = new Set([
+  "/admin",
+  "/admin/time-tracker",
+  "/admin/tablet",
+]);
+
 const isLeafActive = (current: string, path: string) => {
-  if (path === "/admin") return current === "/admin";
-  if (path === "/admin/time-tracker") return current === "/admin/time-tracker";
+  if (EXACT_ONLY_PATHS.has(path)) return current === path;
   return current === path || current.startsWith(path + "/");
 };
 
@@ -91,7 +116,10 @@ interface NavListProps {
 }
 
 const NavList = ({ current, openGroups, toggleGroup, onNavigate }: NavListProps) => (
-  <nav className="flex-1 p-4 space-y-1">
+  <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+    <p className="px-3 pt-2 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+      Workspace
+    </p>
     {navItems.map((item) => {
       if (item.type === "leaf") {
         const Icon = item.icon;
@@ -99,12 +127,17 @@ const NavList = ({ current, openGroups, toggleGroup, onNavigate }: NavListProps)
         return (
           <Link key={item.path} to={item.path} onClick={onNavigate}>
             <div
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                active ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+              className={`group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
+                active
+                  ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                  : "text-foreground/80 hover:text-foreground hover:bg-muted"
               }`}
             >
-              <Icon className="w-5 h-5" />
-              <span>{item.label}</span>
+              {active && (
+                <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r-full bg-primary-foreground/70" />
+              )}
+              <Icon className={`w-4.5 h-4.5 shrink-0 ${active ? "" : "text-muted-foreground group-hover:text-foreground"}`} />
+              <span className="font-medium">{item.label}</span>
             </div>
           </Link>
         );
@@ -114,31 +147,42 @@ const NavList = ({ current, openGroups, toggleGroup, onNavigate }: NavListProps)
       const groupActive = isGroupActive(current, item);
       const Chevron = open ? ChevronDown : ChevronRight;
       return (
-        <div key={item.key}>
+        <div key={item.key} className="pt-1">
           <button
             type="button"
             onClick={() => toggleGroup(item.key)}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-              groupActive && !open ? "bg-muted" : "hover:bg-muted"
+            className={`group w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
+              groupActive
+                ? "text-foreground bg-muted/60"
+                : "text-foreground/80 hover:text-foreground hover:bg-muted"
             }`}
           >
-            <Icon className="w-5 h-5" />
-            <span className="flex-1 text-left">{item.label}</span>
-            <Chevron className="w-4 h-4 opacity-70" />
+            <Icon className={`w-4.5 h-4.5 shrink-0 ${groupActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
+            <span className="flex-1 text-left font-medium">{item.label}</span>
+            {groupActive && (
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            )}
+            <Chevron className="w-3.5 h-3.5 opacity-60 transition-transform" />
           </button>
           {open && (
-            <div className="ml-3 mt-1 space-y-1 border-l pl-3">
+            <div className="ml-4 mt-1 space-y-0.5 relative">
+              <span className="absolute left-0 top-1 bottom-1 w-px bg-border" />
               {item.children.map((child) => {
                 const ChildIcon = child.icon;
                 const active = isLeafActive(current, child.path);
                 return (
                   <Link key={child.path} to={child.path} onClick={onNavigate}>
                     <div
-                      className={`flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                        active ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                      className={`relative ml-3 flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm transition-all ${
+                        active
+                          ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       }`}
                     >
-                      <ChildIcon className="w-4 h-4" />
+                      {active && (
+                        <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary border-2 border-background" />
+                      )}
+                      <ChildIcon className="w-3.5 h-3.5 shrink-0" />
                       <span>{child.label}</span>
                     </div>
                   </Link>
@@ -159,26 +203,42 @@ interface SidebarBodyProps extends NavListProps {
 
 const SidebarBody = ({ current, openGroups, toggleGroup, onNavigate, email, onLogout }: SidebarBodyProps) => (
   <>
-    <div className="p-6 border-b">
+    <div className="p-4 border-b border-border/60">
       <Link
         to="/"
         onClick={onNavigate}
-        className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4"
+        className="group inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-4"
       >
-        <ArrowLeft className="w-4 h-4" />
-        Back
+        <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+        Back to site
       </Link>
-      <div className="flex items-center gap-2">
-        <Wrench className="w-6 h-6 text-primary" />
-        <span className="font-bold">Admin</span>
-      </div>
-      <p className="text-xs text-muted-foreground mt-1 truncate">{email}</p>
+      <Link to="/admin" onClick={onNavigate} className="flex items-center gap-2.5 group">
+        <div className="relative w-9 h-9 rounded-xl bg-card border border-border inline-flex items-center justify-center shadow-md shadow-primary/10 overflow-hidden p-1">
+          <img src="/assets/logonew.png" alt="Nap.AI" className="w-full h-full object-contain" />
+          <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-md bg-background border border-border inline-flex items-center justify-center">
+            <Wrench className="w-2 h-2 text-primary" />
+          </span>
+        </div>
+        <div className="min-w-0">
+          <p className="font-semibold leading-tight">Nap.AI Admin</p>
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Control panel</p>
+        </div>
+      </Link>
     </div>
     <NavList current={current} openGroups={openGroups} toggleGroup={toggleGroup} onNavigate={onNavigate} />
-    <div className="p-4 border-t">
-      <Button variant="ghost" className="w-full justify-start" onClick={onLogout}>
-        <LogOut className="w-5 h-5 mr-3" />
-        Logout
+    <div className="p-3 border-t border-border/60">
+      <div className="rounded-xl bg-muted/40 border border-border/60 p-2.5 mb-2 flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-full bg-primary/10 inline-flex items-center justify-center text-xs font-semibold text-primary shrink-0">
+          {email?.[0]?.toUpperCase() ?? "A"}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Signed in as</p>
+          <p className="text-xs font-medium truncate" title={email ?? ""}>{email}</p>
+        </div>
+      </div>
+      <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={onLogout}>
+        <LogOut className="w-4 h-4 mr-2.5" />
+        Sign out
       </Button>
     </div>
   </>
@@ -209,9 +269,9 @@ const AdminLayout = () => {
   const timeGroup = navItems.find((i): i is GroupItem => i.type === "group" && i.key === "time-tracker");
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-muted/20 flex">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-64 border-r bg-muted/30 flex-col">
+      <aside className="hidden md:flex w-64 border-r border-border/60 bg-background/80 backdrop-blur flex-col">
         <SidebarBody
           current={current}
           openGroups={openGroups}

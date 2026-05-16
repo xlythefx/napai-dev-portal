@@ -15,6 +15,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { confirm } from "@/components/ui/confirm-dialog";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer,
@@ -157,7 +158,14 @@ const AdminFinance = () => {
 
   // ---- Seed ----
   const handleSeed = async (force = false) => {
-    if (!window.confirm(force ? "Clear existing seed data and re-seed?" : "Insert sample transactions?")) return;
+    if (!(await confirm({
+      title: force ? "Re-seed sample data?" : "Insert sample transactions?",
+      description: force
+        ? "Existing seed data will be cleared and replaced with a fresh sample set."
+        : "A handful of sample transactions will be added so you can explore the dashboard.",
+      confirmText: force ? "Clear & re-seed" : "Insert samples",
+      tone: force ? "warning" : "default",
+    }))) return;
     setSeeding(true);
     try {
       const res = await financeSeed({ requester_email: email, force });
@@ -240,7 +248,12 @@ const AdminFinance = () => {
 
   // ---- Delete ----
   const handleDelete = async (tx: FinanceTransaction) => {
-    if (!window.confirm(`Delete "${tx.description ?? categoryLabel(tx.category)}"?`)) return;
+    if (!(await confirm({
+      title: `Delete "${tx.description ?? categoryLabel(tx.category)}"?`,
+      description: "This transaction will be removed permanently.",
+      confirmText: "Delete transaction",
+      tone: "danger",
+    }))) return;
     try {
       await financeDeleteTransaction({ requester_email: email, id: tx.id });
       toast({ title: "Deleted" });

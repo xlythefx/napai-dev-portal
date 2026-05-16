@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Sparkles, Twitter, Linkedin, Github, Instagram } from "lucide-react";
+import { Sparkles, Twitter, Linkedin, Github, Instagram, Download } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -71,7 +72,17 @@ const Footer = () => {
         <div className="pt-8 border-t border-primary-foreground/20">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm opacity-90">
             <p>© {currentYear} Nap.AI Digital Solutions. All rights reserved.</p>
-            <p>Engineered for 9-Figure Growth</p>
+            <div className="flex items-center gap-4">
+              <a
+                href={`${API_BASE}/apk/vendotab`}
+                className="inline-flex items-center gap-1.5 text-xs hover:underline opacity-80 hover:opacity-100 transition-opacity"
+                title="Download the latest QuanTab APK"
+              >
+                <Download className="w-3 h-3" />
+                Download QuanTab APK
+              </a>
+              <p className="text-xs opacity-80">Engineered for 9-Figure Growth</p>
+            </div>
           </div>
         </div>
       </div>

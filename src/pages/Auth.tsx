@@ -7,7 +7,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { developersLogin } from "@/lib/adminApi";
 import { motion } from "framer-motion";
 import {
-  Brain,
   ArrowLeft,
   Mail,
   Lock,
@@ -17,8 +16,9 @@ import {
   ShieldCheck,
   Zap,
   Workflow,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
-import { FlickeringGrid } from "@/components/ui/flickering-grid";
 
 const Auth = () => {
   const { toast } = useToast();
@@ -80,27 +80,33 @@ const Auth = () => {
   ];
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background">
-      <FlickeringGrid
-        className="absolute inset-0 z-0"
-        squareSize={4}
-        gridGap={8}
-        color="hsl(var(--primary))"
-        maxOpacity={0.05}
-        flickerChance={0.08}
+    <div className="min-h-screen relative overflow-hidden text-foreground">
+      {/* Backdrop */}
+      <div className="absolute inset-0 -z-20 bg-background" />
+      {/* subtle grid */}
+      <div
+        className="absolute inset-0 -z-10 opacity-[0.04]"
+        aria-hidden="true"
+        style={{
+          backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px),
+                            linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)`,
+          backgroundSize: "60px 60px",
+        }}
       />
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_left,hsl(var(--primary)/0.07),transparent_60%)]" />
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(var(--primary)/0.05),transparent_55%)]" />
+      {/* glow blobs */}
+      <div className="absolute -top-40 -left-40 w-[32rem] h-[32rem] rounded-full bg-primary/15 blur-3xl -z-10 animate-pulse" />
+      <div className="absolute -bottom-40 -right-40 w-[32rem] h-[32rem] rounded-full bg-emerald-500/10 blur-3xl -z-10 animate-pulse" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,transparent,hsl(var(--background))_85%)]" />
 
       <div className="relative z-10 min-h-screen grid grid-cols-1 lg:grid-cols-2">
         {/* Left: brand panel */}
         <div className="hidden lg:flex relative flex-col justify-center p-12 xl:p-16 border-r border-border/50">
           <Link
-            to="/"
-            className="absolute top-8 left-12 xl:left-16 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors w-fit"
+            to="/developer-portal"
+            className="absolute top-8 left-12 xl:left-16 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors w-fit group"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm">Back to Home</span>
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <span className="text-sm">Back to portal</span>
           </Link>
 
           <motion.div
@@ -110,39 +116,47 @@ const Auth = () => {
             className="space-y-8 max-w-md"
           >
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Brain className="w-6 h-6 text-primary" />
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center shadow-lg shadow-primary/10 overflow-hidden p-1.5">
+                <img src="/assets/logonew.png" alt="Nap.AI" className="w-full h-full object-contain" />
               </div>
               <span className="text-2xl font-bold tracking-tighter">
                 Nap<span className="text-primary">.AI</span>
               </span>
+              <span className="ml-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider">
+                Developer Portal
+              </span>
             </div>
 
             <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                <Sparkles className="w-3 h-3" /> Welcome back, builder
+              </div>
               <h1 className="text-4xl xl:text-5xl font-bold tracking-tighter leading-[1.1]">
-                Welcome back to your{" "}
-                <span className="text-primary">workspace.</span>
+                Sign in to your{" "}
+                <span className="bg-gradient-to-r from-primary via-primary to-emerald-500 bg-clip-text text-transparent">
+                  workspace.
+                </span>
               </h1>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Sign in to access the tools, dashboards, and automations
-                we&apos;ve built for your team.
+                Access the tools, dashboards, and automations we&apos;ve built
+                for your team — all in one place.
               </p>
             </div>
 
-            <ul className="space-y-5 pt-4">
+            <ul className="space-y-4 pt-2">
               {valueProps.map((v, i) => (
                 <motion.li
                   key={v.title}
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 + i * 0.1 }}
-                  className="flex items-start gap-3"
+                  className="flex items-start gap-3 group"
                 >
-                  <div className="mt-0.5 w-9 h-9 rounded-lg bg-primary/5 border border-primary/15 flex items-center justify-center shrink-0">
-                    <v.icon className="w-4 h-4 text-primary" />
+                  <div className="mt-0.5 w-10 h-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/15 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-transform">
+                    <v.icon className="w-4.5 h-4.5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">{v.title}</p>
+                    <p className="font-semibold text-sm">{v.title}</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       {v.desc}
                     </p>
@@ -150,6 +164,12 @@ const Auth = () => {
                 </motion.li>
               ))}
             </ul>
+
+            <div className="flex items-center gap-4 pt-4 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> SSO ready</span>
+              <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> Audit logs</span>
+              <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> Role-based</span>
+            </div>
           </motion.div>
 
           <p className="absolute bottom-8 left-12 xl:left-16 text-xs text-muted-foreground">
@@ -163,136 +183,163 @@ const Auth = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full max-w-md space-y-8"
+            className="w-full max-w-md"
           >
             {/* Mobile-only brand */}
-            <div className="lg:hidden flex items-center justify-between">
+            <div className="lg:hidden flex items-center justify-between mb-8">
               <Link
-                to="/"
+                to="/developer-portal"
                 className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span className="text-sm">Back</span>
               </Link>
               <div className="flex items-center gap-2">
-                <Brain className="w-5 h-5 text-primary" />
+                <img src="/assets/logonew.png" alt="Nap.AI" className="w-6 h-6 object-contain" />
                 <span className="text-lg font-bold tracking-tighter">
                   Nap<span className="text-primary">.AI</span>
                 </span>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tight">Sign in</h2>
-              <p className="text-muted-foreground text-sm">
-                Enter your credentials to access your tools.
-              </p>
-            </div>
+            {/* Form card */}
+            <div className="relative rounded-3xl border border-border/60 bg-card/70 backdrop-blur-xl p-6 sm:p-8 shadow-2xl shadow-primary/5 overflow-hidden">
+              {/* card glow */}
+              <div className="absolute -top-24 -right-24 w-56 h-56 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-24 -left-24 w-56 h-56 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
 
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div className="space-y-2">
-                <label
-                  htmlFor="email"
-                  className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                >
-                  Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@company.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                    className="h-12 pl-10"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label
-                    htmlFor="password"
-                    className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                  >
-                    Password
-                  </label>
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    autoComplete="current-password"
-                    className="h-12 pl-10 pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((s) => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full h-12 rounded-full text-base group"
-                disabled={loading}
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <motion.span
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-4 h-4 border-2 border-current border-t-transparent rounded-full"
-                    />
-                    Signing in...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <LogIn className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                    Sign in
-                  </span>
-                )}
-              </Button>
-            </form>
-
-            <div className="space-y-3 pt-2">
               <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border" />
+                <div className="flex items-center gap-3 mb-1.5">
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-primary/60 inline-flex items-center justify-center shadow-lg shadow-primary/30 relative">
+                    <span className="absolute inset-0 rounded-2xl bg-primary animate-ping opacity-20" />
+                    <LogIn className="w-5 h-5 text-primary-foreground relative" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight">Sign in</h2>
+                    <p className="text-xs text-muted-foreground">
+                      Use your Nap.AI portal credentials
+                    </p>
+                  </div>
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-3 text-muted-foreground tracking-wider">
-                    Need access?
-                  </span>
+
+                <form onSubmit={handleLogin} className="space-y-5 mt-6">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="email"
+                      className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Email
+                    </label>
+                    <div className="relative group">
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="you@company.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        autoComplete="email"
+                        autoFocus
+                        className="h-12 pl-10 text-base bg-background/60 border-border focus-visible:border-primary/50 focus-visible:ring-primary/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label
+                        htmlFor="password"
+                        className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Password
+                      </label>
+                      <a
+                        href="/#contact"
+                        className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        Forgot?
+                      </a>
+                    </div>
+                    <div className="relative group">
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        autoComplete="current-password"
+                        className="h-12 pl-10 pr-10 text-base bg-background/60 border-border focus-visible:border-primary/50 focus-visible:ring-primary/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((s) => !s)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full h-12 rounded-full text-base group shadow-lg shadow-primary/20"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <span className="flex items-center gap-2">
+                        <motion.span
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-4 h-4 border-2 border-current border-t-transparent rounded-full"
+                        />
+                        Signing in...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        Sign in
+                        <LogIn className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                      </span>
+                    )}
+                  </Button>
+                </form>
+
+                <div className="space-y-3 pt-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-border/60" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card/70 px-3 text-muted-foreground tracking-wider backdrop-blur">
+                        Need access?
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-center text-sm text-muted-foreground">
+                    Contact your admin or{" "}
+                    <a
+                      href="/#contact"
+                      className="text-foreground font-semibold hover:text-primary transition-colors underline-offset-2 hover:underline"
+                    >
+                      book a call
+                    </a>{" "}
+                    to get started.
+                  </p>
                 </div>
               </div>
-              <p className="text-center text-sm text-muted-foreground">
-                Contact your admin or{" "}
-                <a
-                  href="/#contact"
-                  className="text-foreground font-medium hover:text-primary transition-colors"
-                >
-                  book a call
-                </a>{" "}
-                to get started.
-              </p>
             </div>
+
+            <p className="text-center text-[11px] text-muted-foreground mt-6 inline-flex items-center justify-center gap-1.5 w-full">
+              <ShieldCheck className="w-3 h-3" />
+              Secured with role-based access · all sessions audit-logged
+            </p>
           </motion.div>
         </div>
       </div>

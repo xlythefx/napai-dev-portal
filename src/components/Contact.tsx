@@ -210,8 +210,8 @@ const Contact = () => {
                 {
                   icon: Mail,
                   label: "Email",
-                  value: "hello@napai.digital",
-                  href: "mailto:hello@napai.digital",
+                  value: "napaychristianpaolo@gmail.com",
+                  href: "mailto:napaychristianpaolo@gmail.com",
                 },
                 {
                   icon: Phone,

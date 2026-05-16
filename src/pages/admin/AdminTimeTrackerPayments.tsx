@@ -35,6 +35,7 @@ import {
   type DailyEarning,
 } from "@/lib/timeTrackerApi";
 import { useToast } from "@/hooks/use-toast";
+import { confirm } from "@/components/ui/confirm-dialog";
 import { formatDate } from "@/lib/format";
 import {
   Loader2,
@@ -188,9 +189,12 @@ const AdminTimeTrackerPayments = () => {
 
   const undoPayment = async (row: DailyEarning) => {
     if (!row.payment) return;
-    if (!window.confirm(`Undo payment of PHP ${row.payment.amount.toFixed(2)} for ${row.developer_email} on ${formatDate(row.date)}?`)) {
-      return;
-    }
+    if (!(await confirm({
+      title: "Undo this payment?",
+      description: `Remove PHP ${row.payment.amount.toFixed(2)} payment to ${row.developer_email} on ${formatDate(row.date)}.`,
+      confirmText: "Undo payment",
+      tone: "warning",
+    }))) return;
     try {
       await adminDeletePayment({
         requester_email: requesterEmail,

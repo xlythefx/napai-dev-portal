@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { confirm } from "@/components/ui/confirm-dialog";
 import {
   Upload,
   Loader2,
@@ -39,6 +40,7 @@ const AdminTimeTrackerSettings = () => {
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [setCurrentOnUpload, setSetCurrentOnUpload] = useState(true);
+  const [autoDownload, setAutoDownload] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [busyRowId, setBusyRowId] = useState<number | null>(null);
@@ -84,11 +86,12 @@ const AdminTimeTrackerSettings = () => {
         notes: notes.trim() || undefined,
         platform: "win",
         setCurrent: setCurrentOnUpload,
+        autoDownload,
         file,
         onProgress: (loaded, total) => setProgress(Math.round((loaded / total) * 100)),
       });
       toast({ title: "Upload complete", description: `${file.name} (${formatBytes(file.size)})` });
-      setVersion(""); setNotes(""); setFile(null);
+      setVersion(""); setNotes(""); setFile(null); setAutoDownload(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
       await refresh();
     } catch (e: any) {
@@ -112,7 +115,12 @@ const AdminTimeTrackerSettings = () => {
   };
 
   const handleDelete = async (r: TimeTrackerRelease) => {
-    if (!confirm(`Delete release ${r.version} (${r.filename})? This cannot be undone.`)) return;
+    if (!(await confirm({
+      title: `Delete release ${r.version}?`,
+      description: `${r.filename} will be permanently removed. This cannot be undone.`,
+      confirmText: "Delete release",
+      tone: "danger",
+    }))) return;
     setBusyRowId(r.id);
     try {
       await deleteRelease({ requester_email: adminEmail, id: r.id });
@@ -192,6 +200,22 @@ const AdminTimeTrackerSettings = () => {
               disabled={uploading}
             />
             Make this the current download for Windows
+          </label>
+
+          <label className="flex items-start gap-2 cursor-pointer text-sm">
+            <Checkbox
+              checked={autoDownload}
+              onCheckedChange={(v) => setAutoDownload(!!v)}
+              disabled={uploading}
+              className="mt-0.5"
+            />
+            <span>
+              Force auto-download (critical / major release)
+              <span className="block text-xs text-muted-foreground">
+                Installed apps will download this update silently in the background instead
+                of waiting for the user to click <em>Update now</em>.
+              </span>
+            </span>
           </label>
 
           {uploading && (
@@ -281,6 +305,11 @@ const AdminTimeTrackerSettings = () => {
                             {r.is_current && (
                               <Badge variant="default" className="gap-1">
                                 <CheckCircle2 className="w-3 h-3" /> current
+                              </Badge>
+                            )}
+                            {r.auto_download && (
+                              <Badge variant="secondary" className="gap-1">
+                                <Download className="w-3 h-3" /> auto-download
                               </Badge>
                             )}
                           </div>
