@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Services from "@/components/Services";
 import Projects from "@/components/Projects";
+import QuantabPromo from "@/components/QuantabPromo";
 import Testimonials from "@/components/Testimonials";
 import Partners from "@/components/Partners";
 import Contact from "@/components/Contact";
@@ -44,6 +45,7 @@ const Index = () => {
       <Partners />
       <Services />
       <Projects />
+      <QuantabPromo />
       <Testimonials />
       <Contact />
       <Footer />

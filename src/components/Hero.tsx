@@ -72,7 +72,7 @@ const Hero = () => {
                   New
                 </span>
                 <span className="text-xs font-medium">
-                  Looking for <span className="font-bold text-primary">QuanTab</span>? Coin-operated tablet kiosk — from ₱250
+                  Looking for <span className="font-bold text-primary">QuanTab</span>? Coin-operated tablet kiosk — from ₱300
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 text-primary group-hover:translate-x-0.5 transition-transform" />
               </Link>

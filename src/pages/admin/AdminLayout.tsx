@@ -24,6 +24,7 @@ import {
   KeyRound,
   QrCode,
   Package,
+  ShieldCheck,
 } from "lucide-react";
 
 type LeafItem = {
@@ -78,6 +79,8 @@ const navItems: NavItem[] = [
       { type: "leaf", path: "/admin/tablet/apk-versions", label: "APK Versions", icon: Package },
     ],
   },
+  { type: "leaf", path: "/admin/system-settings", label: "System Settings", icon: SettingsIcon },
+  { type: "leaf", path: "/admin/audit-log", label: "Audit Log", icon: ShieldCheck },
 ];
 
 // Routes where sub-paths should NOT bubble the highlight back to the parent leaf.

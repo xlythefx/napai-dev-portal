@@ -34,6 +34,7 @@ import {
   Terminal,
   Trash2,
   XCircle,
+  BookOpen,
 } from "lucide-react";
 import { publicActiveApk, setupScriptUrl, type PublicActiveApk } from "@/lib/tabletApi";
 import {
@@ -101,7 +102,7 @@ const tickerItems = [
   { icon: BatteryCharging, text: "Coin-timer ready out of the box" },
   { icon: Lock, text: "Android device-owner lockdown" },
   { icon: TrendingUp, text: "Avg ₱8,000/month per tablet" },
-  { icon: ShoppingBag, text: "Lifetime from ₱250 — no monthly fees" },
+  { icon: ShoppingBag, text: "Lifetime from ₱300 — no monthly fees" },
   { icon: Users, text: "200+ shops running QuanTab" },
 ];
 
@@ -316,7 +317,7 @@ const VendotabLanding = () => {
             <div className="flex items-center gap-3 flex-wrap">
               <a href="#contact">
                 <Button size="lg" className="group shadow-lg shadow-primary/20">
-                  Buy a license — from ₱250 lifetime
+                  Buy a license — from ₱300 lifetime
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </a>
@@ -523,6 +524,34 @@ const VendotabLanding = () => {
               </div>
             ))}
           </div>
+
+          {/* Full setup guide CTA */}
+          <div data-aos="fade-up" className="mt-12">
+            <Link to="/products/quantab/setup" className="block group">
+              <Card className="relative overflow-hidden border-primary/30 hover:border-primary/60 transition-all hover:shadow-xl hover:shadow-primary/10">
+                <div className="absolute -top-16 -right-16 w-56 h-56 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors" />
+                <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl" />
+                <CardContent className="relative p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-5">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground inline-flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+                    <BookOpen className="w-7 h-7" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-1">Want the full walkthrough?</p>
+                    <h3 className="text-xl md:text-2xl font-bold tracking-tight mb-1.5">
+                      Read the complete QuanTab setup guide
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Every phase, every screen, every gotcha — including ADB install, coin-timer wiring, kiosk configuration, and a full troubleshooting section.
+                    </p>
+                  </div>
+                  <Button size="lg" className="shrink-0 shadow-lg shadow-primary/20 group-hover:translate-x-1 transition-transform">
+                    Open guide
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -622,9 +651,9 @@ const VendotabLanding = () => {
 
               <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
                 <span>{activeApk ? `Released ${formatDate(activeApk.uploaded_at)}` : ""}</span>
-                <a href="#how" className="inline-flex items-center gap-1 text-primary hover:underline">
-                  Setup Guide <ArrowRight className="w-3.5 h-3.5" />
-                </a>
+                <Link to="/products/quantab/setup" className="inline-flex items-center gap-1 text-primary hover:underline">
+                  Full Setup Guide <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
 
               <p className="text-xs text-muted-foreground/80 leading-relaxed border-t pt-4">
@@ -661,7 +690,7 @@ const VendotabLanding = () => {
                 key: "plus",
                 name: "Plus",
                 tagline: "Just the essentials",
-                price: 250,
+                price: 300,
                 highlight: false,
                 cta: "Get Plus",
                 features: [
@@ -681,7 +710,7 @@ const VendotabLanding = () => {
                 key: "pro",
                 name: "Pro",
                 tagline: "A little more headroom",
-                price: 349,
+                price: 399,
                 highlight: false,
                 cta: "Get Pro",
                 features: [
@@ -699,7 +728,7 @@ const VendotabLanding = () => {
                 key: "max",
                 name: "Max",
                 tagline: "Everything unlocked",
-                price: 399,
+                price: 449,
                 highlight: true,
                 cta: "Get Max",
                 features: [
@@ -889,7 +918,7 @@ const VendotabLanding = () => {
               </div>
               <p className="opacity-90 leading-relaxed max-w-md mb-6">
                 Turn any Android tablet into a coin-operated kiosk in 5 minutes.
-                Built specifically for Philippine vendo-shop owners — locked down, hands-off, lifetime from ₱250.
+                Built specifically for Philippine vendo-shop owners — locked down, hands-off, lifetime from ₱300.
               </p>
               <div className="flex items-center space-x-4">
                 {[Twitter, Linkedin, Github, Instagram].map((Icon, index) => (
@@ -916,6 +945,12 @@ const VendotabLanding = () => {
                 <li>
                   <Link to="/products/quantab/trial" className="hover:underline hover:opacity-100 transition-opacity">
                     3-day free trial
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/products/quantab/setup" className="inline-flex items-center gap-1.5 hover:underline hover:opacity-100 transition-opacity">
+                    <BookOpen className="w-3.5 h-3.5" />
+                    Full setup guide
                   </Link>
                 </li>
                 <li>

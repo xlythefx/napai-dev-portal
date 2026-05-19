@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Sparkles, Twitter, Linkedin, Github, Instagram, Download } from "lucide-react";
+import { Sparkles, Twitter, Linkedin, Github, Instagram, Download, BookOpen } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 
 const Footer = () => {
@@ -53,6 +53,13 @@ const Footer = () => {
               <li><a href="/#partners" className="hover:underline hover:opacity-100 transition-opacity">Partners</a></li>
               <li><a href="/#contact" className="hover:underline hover:opacity-100 transition-opacity">Contact</a></li>
               <li><Link to="/auth" className="hover:underline hover:opacity-100 transition-opacity">Referral Program</Link></li>
+              <li><Link to="/products/quantab" className="hover:underline hover:opacity-100 transition-opacity">QuanTab</Link></li>
+              <li>
+                <Link to="/products/quantab/setup" className="inline-flex items-center gap-1.5 hover:underline hover:opacity-100 transition-opacity">
+                  <BookOpen className="w-3.5 h-3.5" />
+                  QuanTab Setup Guide
+                </Link>
+              </li>
             </ul>
           </div>
 

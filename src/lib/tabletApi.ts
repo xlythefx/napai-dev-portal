@@ -277,11 +277,24 @@ export interface RequestTrialResponse {
   has_active_apk: boolean;
 }
 
-export async function requestTrial(email: string, name?: string): Promise<RequestTrialResponse> {
+export async function requestTrialOtpSend(email: string): Promise<{ ok: boolean; expires_in_seconds: number }> {
+  const res = await fetch(url("trial_otp_send.php"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  return asJson(res);
+}
+
+export async function requestTrial(
+  email: string,
+  name: string | undefined,
+  otp: string,
+): Promise<RequestTrialResponse> {
   const res = await fetch(url("request_trial.php"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, name }),
+    body: JSON.stringify({ email, name, otp }),
   });
   return asJson(res);
 }
@@ -477,5 +490,62 @@ export async function devicesList(email: string): Promise<{ rows: DeviceRow[] }>
 
 export async function tabletMetrics(email: string): Promise<MetricsResponse> {
   const res = await adminFetch("metrics.php", email);
+  return asJson(res);
+}
+
+export interface TabletSettings {
+  email_keys_enabled: boolean;
+  is_maintenance: boolean;
+}
+
+export async function tabletSettingsGet(email: string): Promise<{ ok: boolean; settings: TabletSettings }> {
+  const res = await adminFetch("settings_get.php", email);
+  return asJson(res);
+}
+
+export interface AuditRow {
+  id: number;
+  actor_email: string;
+  action: string;
+  target_serial: string | null;
+  ip: string | null;
+  payload: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface AuditListResponse {
+  ok: boolean;
+  rows: AuditRow[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
+export async function tabletAuditList(
+  email: string,
+  params: { page?: number; per_page?: number; action?: string; serial?: string; actor?: string } = {},
+): Promise<AuditListResponse> {
+  const query: Record<string, string | number | undefined> = {
+    page: params.page,
+    per_page: params.per_page,
+    action: params.action,
+    serial: params.serial,
+    actor: params.actor,
+  };
+  const res = await adminFetch("audit_list.php", email, { query });
+  return asJson(res);
+}
+
+export async function tabletSettingsUpdate(
+  email: string,
+  patch: Partial<TabletSettings>,
+): Promise<{ ok: boolean; settings: TabletSettings }> {
+  const params = new URLSearchParams({ requester_email: email });
+  const res = await fetch(`${url("settings_update.php")}?${params.toString()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
   return asJson(res);
 }

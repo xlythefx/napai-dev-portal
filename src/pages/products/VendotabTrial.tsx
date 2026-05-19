@@ -25,16 +25,24 @@ import {
   Printer,
   Users,
 } from "lucide-react";
-import { requestTrial, trialEmailQr, type RequestTrialResponse } from "@/lib/tabletApi";
+import { requestTrial, requestTrialOtpSend, trialEmailQr, type RequestTrialResponse } from "@/lib/tabletApi";
 
-type Step = "intro" | "form" | "submitting" | "success" | "error";
+type Step = "intro" | "form" | "sending_otp" | "otp" | "submitting" | "success" | "error";
 
-const stepIndex = (s: Step) => ({ intro: 0, form: 1, submitting: 2, success: 3, error: 3 }[s]);
+const stepIndex = (s: Step) => ({
+  intro: 0,
+  form: 1,
+  sending_otp: 1,
+  otp: 2,
+  submitting: 2,
+  success: 3,
+  error: 3,
+}[s]);
 
-const STEP_LABELS = ["Intro", "Your details", "Your trial QR"];
+const STEP_LABELS = ["Intro", "Your details", "Verify email", "Your trial QR"];
 
 const StepBar = ({ step }: { step: Step }) => {
-  const idx = Math.min(stepIndex(step), 2);
+  const idx = Math.min(stepIndex(step), STEP_LABELS.length - 1);
   const pct = (idx / (STEP_LABELS.length - 1)) * 100;
   return (
     <div className="mb-10">
@@ -82,6 +90,8 @@ const VendotabTrial = () => {
   const [name, setName] = useState("");
   const [result, setResult] = useState<RequestTrialResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState<string | null>(null);
   const [emailStatus, setEmailStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
   const [emailError, setEmailError] = useState<string | null>(null);
   const qrRef = useRef<HTMLDivElement>(null);
@@ -120,17 +130,58 @@ const VendotabTrial = () => {
     return () => clearTimeout(t);
   }, [step, result, emailStatus]);
 
+  // Form step → ask server to email a 6-digit code, then move to OTP step.
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setStep("submitting");
+    setOtp("");
+    setOtpError(null);
+    setStep("sending_otp");
     try {
-      const r = await requestTrial(email.trim(), name.trim());
-      setResult(r);
-      setStep("success");
+      await requestTrialOtpSend(email.trim());
+      setStep("otp");
     } catch (err) {
       setError((err as Error).message);
       setStep("error");
+    }
+  };
+
+  // OTP step → verify code + mint trial serial.
+  const verifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setOtpError(null);
+    const code = otp.replace(/\D/g, "");
+    if (code.length !== 6) {
+      setOtpError("Enter the 6-digit code from your email.");
+      return;
+    }
+    setStep("submitting");
+    try {
+      const r = await requestTrial(email.trim(), name.trim(), code);
+      setResult(r);
+      setStep("success");
+    } catch (err) {
+      // Recoverable OTP errors (wrong/expired code) → stay on OTP step.
+      const msg = (err as Error).message;
+      if (/otp|code|wrong|expired|locked/i.test(msg)) {
+        setOtpError(msg);
+        setStep("otp");
+      } else {
+        setError(msg);
+        setStep("error");
+      }
+    }
+  };
+
+  const resendOtp = async () => {
+    setOtpError(null);
+    setStep("sending_otp");
+    try {
+      await requestTrialOtpSend(email.trim());
+      setStep("otp");
+    } catch (err) {
+      setOtpError((err as Error).message);
+      setStep("otp");
     }
   };
 
@@ -367,6 +418,87 @@ const VendotabTrial = () => {
                       </Button>
                     </div>
                   </form>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {step === "sending_otp" && (
+            <motion.div
+              key="sending_otp"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <Card className="border-primary/20 shadow-xl">
+                <CardContent className="pt-16 pb-16 text-center">
+                  <div className="relative w-20 h-20 mx-auto mb-5">
+                    <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping" />
+                    <div className="relative w-20 h-20 rounded-full bg-primary/10 inline-flex items-center justify-center">
+                      <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                    </div>
+                  </div>
+                  <p className="text-lg font-semibold mb-1">Sending you a code…</p>
+                  <p className="text-sm text-muted-foreground">Watch your inbox for a 6-digit code.</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {step === "otp" && (
+            <motion.div
+              key="otp"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.35 }}
+            >
+              <Card className="border-primary/20 shadow-xl">
+                <CardContent className="pt-10 pb-10 px-6 md:px-10">
+                  <div className="text-center mb-6">
+                    <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 inline-flex items-center justify-center mb-4">
+                      <Mail className="w-8 h-8 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-bold tracking-tight mb-1">Check your email</h2>
+                    <p className="text-sm text-muted-foreground">
+                      We sent a 6-digit code to <span className="font-semibold text-foreground">{email.trim()}</span>.
+                      Enter it below to receive your trial QR.
+                    </p>
+                  </div>
+
+                  <form onSubmit={verifyOtp} className="space-y-4 max-w-sm mx-auto">
+                    <Input
+                      autoFocus
+                      inputMode="numeric"
+                      pattern="\d{6}"
+                      maxLength={6}
+                      placeholder="123456"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      className="text-center text-3xl tracking-[0.6em] font-mono h-16"
+                    />
+                    {otpError && (
+                      <div className="flex items-start gap-2 rounded-lg bg-destructive/10 border border-destructive/30 px-3 py-2 text-sm text-destructive">
+                        <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                        <span>{otpError}</span>
+                      </div>
+                    )}
+                    <Button type="submit" className="w-full" size="lg" disabled={otp.length !== 6}>
+                      Verify code <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <button type="button" onClick={() => setStep("form")} className="hover:text-foreground inline-flex items-center gap-1">
+                        <ArrowLeft className="w-3 h-3" /> Wrong email
+                      </button>
+                      <button type="button" onClick={resendOtp} className="hover:text-foreground">
+                        Resend code
+                      </button>
+                    </div>
+                  </form>
+
+                  <p className="text-[11px] text-muted-foreground text-center mt-6">
+                    Code expires in 15 minutes. Check your spam folder if it doesn't arrive within a minute.
+                  </p>
                 </CardContent>
               </Card>
             </motion.div>

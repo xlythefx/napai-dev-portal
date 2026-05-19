@@ -37,8 +37,11 @@ import TabletKeyDetail from "./pages/admin/TabletKeyDetail";
 import TabletDevices from "./pages/admin/TabletDevices";
 import TabletProvisioning from "./pages/admin/TabletProvisioning";
 import TabletApkVersions from "./pages/admin/TabletApkVersions";
+import TabletSettings from "./pages/admin/TabletSettings";
+import TabletAuditLog from "./pages/admin/TabletAuditLog";
 import VendotabLanding from "./pages/products/Vendotab";
 import VendotabTrial from "./pages/products/VendotabTrial";
+import QuantabSetup from "./pages/products/QuantabSetup";
 import TimeTracker from "./pages/tools/TimeTracker";
 import NotFound from "./pages/NotFound";
 
@@ -56,6 +59,7 @@ const App = () => (
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/products/quantab" element={<VendotabLanding />} />
           <Route path="/products/quantab/trial" element={<VendotabTrial />} />
+          <Route path="/products/quantab/setup" element={<QuantabSetup />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/developer-portal" element={<DeveloperPortal />} />
           <Route path="/developer-signup" element={<DeveloperSignup />} />
@@ -83,6 +87,8 @@ const App = () => (
             <Route path="tablet/devices" element={<TabletDevices />} />
             <Route path="tablet/provisioning" element={<TabletProvisioning />} />
             <Route path="tablet/apk-versions" element={<TabletApkVersions />} />
+            <Route path="system-settings" element={<TabletSettings />} />
+            <Route path="audit-log" element={<TabletAuditLog />} />
           </Route>
           <Route
             path="/tools"
