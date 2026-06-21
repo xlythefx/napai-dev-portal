@@ -52,31 +52,23 @@ const Contact = () => {
   return (
     <section
       id="contact"
-      className="py-32 bg-muted/20 relative overflow-hidden"
+      className="py-24 bg-background relative"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.05),transparent_70%)] pointer-events-none" />
-
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center max-w-3xl mx-auto mb-16"
+          className="text-center max-w-2xl mx-auto mb-14"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/15 mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            <span className="text-xs font-medium tracking-wide uppercase">
-              Let&apos;s build
-            </span>
-          </div>
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tighter leading-tight mb-5">
-            Tell us what you&apos;re{" "}
-            <span className="text-primary">building.</span>
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight leading-snug mb-4">
+            Have an idea you want{" "}
+            <span className="text-primary">to build?</span>
           </h2>
-          <p className="text-lg text-muted-foreground">
-            Drop us a message or book a call. We&apos;ll come back with honest
-            scope, timeline, and next steps — no sales theater.
+          <p className="text-base text-muted-foreground leading-relaxed">
+            Share a few details and we&apos;ll get back to you with an honest
+            scope, timeline, and next steps.
           </p>
         </motion.div>
 
@@ -89,7 +81,7 @@ const Contact = () => {
             transition={{ duration: 0.6 }}
             className="lg:col-span-3"
           >
-            <div className="rounded-2xl border border-border bg-card p-8 md:p-10">
+            <div className="rounded-2xl border border-border/60 bg-muted/30 p-8 md:p-10">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -139,7 +131,7 @@ const Contact = () => {
 
                 <div className="space-y-2">
                   <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    What are you building?{" "}
+                    Tell us about your idea{" "}
                     <span className="text-primary">*</span>
                   </label>
                   <Textarea
@@ -179,25 +171,23 @@ const Contact = () => {
             className="lg:col-span-2 space-y-5"
           >
             {/* Book a call card */}
-            <div className="rounded-2xl border border-foreground bg-foreground text-background p-7 relative overflow-hidden">
-              <div className="absolute -top-12 -right-12 w-40 h-40 bg-background/5 rounded-full blur-3xl" />
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-7 relative overflow-hidden">
               <div className="relative">
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-background/10 border border-background/20 mb-5">
-                  <Calendar className="w-3 h-3" />
-                  <span className="text-[10px] font-medium uppercase tracking-wider">
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 mb-5">
+                  <Calendar className="w-3 h-3 text-primary" />
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-primary">
                     30-min intro
                   </span>
                 </div>
                 <h3 className="text-xl font-bold tracking-tight mb-2">
                   Prefer to talk?
                 </h3>
-                <p className="text-sm opacity-80 leading-relaxed mb-5">
+                <p className="text-sm text-muted-foreground leading-relaxed mb-5">
                   Book a free call. We&apos;ll listen first, then tell you
                   honestly whether we&apos;re the right fit.
                 </p>
                 <Button
-                  variant="secondary"
-                  className="w-full h-11 rounded-full bg-background text-foreground hover:bg-background/90"
+                  className="w-full h-11 rounded-full"
                 >
                   Schedule a call
                 </Button>
@@ -205,7 +195,7 @@ const Contact = () => {
             </div>
 
             {/* Contact details */}
-            <div className="rounded-2xl border border-border bg-card p-7 space-y-4">
+            <div className="rounded-2xl border border-border/60 bg-muted/30 p-7 space-y-4">
               {[
                 {
                   icon: Mail,
@@ -256,7 +246,7 @@ const Contact = () => {
             </div>
 
             {/* Why us */}
-            <div className="rounded-2xl border border-border bg-card p-7">
+            <div className="rounded-2xl border border-border/60 bg-muted/30 p-7">
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-4">
                 Reach out if
               </p>

@@ -75,9 +75,19 @@ export function IconCloud({ iconSlugs }: DynamicCloudProps) {
   const renderedIcons = useMemo(() => {
     if (!data) return null
 
-    return Object.values(data.simpleIcons).map((icon) =>
-      renderCustomIcon(icon, theme || "light"),
-    )
+    // Slugs that were removed/renamed in simple-icons (e.g. java, amazonaws) 404 and come
+    // back undefined here; rendering one throws and — with no error boundary — blanks the
+    // whole page. Skip the missing ones (and guard each render) so the cloud is resilient.
+    return Object.values(data.simpleIcons)
+      .filter(Boolean)
+      .map((icon) => {
+        try {
+          return renderCustomIcon(icon, theme || "light")
+        } catch {
+          return null
+        }
+      })
+      .filter(Boolean)
   }, [data, theme])
 
   return (

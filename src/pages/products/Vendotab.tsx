@@ -14,7 +14,6 @@ import {
   ArrowRight,
   Sparkles,
   ChevronDown,
-  ExternalLink,
   Menu,
   X,
   Play,
@@ -35,6 +34,7 @@ import {
   Trash2,
   XCircle,
   BookOpen,
+  AlertTriangle,
 } from "lucide-react";
 import { publicActiveApk, setupScriptUrl, type PublicActiveApk } from "@/lib/tabletApi";
 import {
@@ -43,6 +43,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { API_BASE } from "@/lib/api";
 import { initAOS } from "@/lib/aos-init";
 
@@ -209,11 +220,9 @@ const VendotabLanding = () => {
                   <ChevronDown className="w-3.5 h-3.5" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" className="w-56">
-                  <DropdownMenuItem asChild>
-                    <a href="https://flowehn.com" target="_blank" rel="noreferrer" className="flex cursor-pointer items-center justify-between">
-                      <span>Flowehn.com</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
+                  <DropdownMenuItem disabled className="justify-between">
+                    <span>Ob-Portus AI: Career Finder</span>
+                    <span className="text-xs text-muted-foreground">Coming soon</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem disabled className="justify-between">
                     <span>Other</span>
@@ -317,7 +326,7 @@ const VendotabLanding = () => {
             <div className="flex items-center gap-3 flex-wrap">
               <a href="#contact">
                 <Button size="lg" className="group shadow-lg shadow-primary/20">
-                  Buy a license — from ₱300 lifetime
+                  Buy a license — starts at ₱300
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </a>
@@ -326,6 +335,11 @@ const VendotabLanding = () => {
                   <Play className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" /> Watch 60s demo
                 </Button>
               </a>
+              <Link to="/products/quantab/setup">
+                <Button size="lg" variant="outline" className="backdrop-blur-sm group">
+                  <BookOpen className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" /> Full setup guide
+                </Button>
+              </Link>
             </div>
             <p className="text-xs text-muted-foreground mt-4">
               <Link to="/products/quantab/trial" className="underline underline-offset-2 hover:text-foreground">
@@ -608,12 +622,41 @@ const VendotabLanding = () => {
                     </p>
                   )}
                 </div>
-                <a href={APK_DOWNLOAD_URL}>
-                  <Button size="sm" className="shadow-sm">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download APK{activeApk ? ` (${formatMb(activeApk.size_bytes)})` : ""}
-                  </Button>
-                </a>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm" className="shadow-sm">
+                      <Download className="w-4 h-4 mr-2" />
+                      Download APK{activeApk ? ` (${formatMb(activeApk.size_bytes)})` : ""}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+                        For updates only — not a first install
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className="space-y-2 text-left">
+                        <span className="block">
+                          This APK is meant <strong>only to manually update an existing QuanTab
+                          install</strong> that was first set up using the ADB Setup scripts below.
+                        </span>
+                        <span className="block">
+                          If you install this as your <strong>first</strong> install, the tablet
+                          won't be set as device owner — so <strong>Kiosk mode, auto-start, and
+                          lockdown features will not work</strong>. Use the ADB Setup steps for a
+                          fresh device.
+                        </span>
+                        <span className="block">Are you sure you want to proceed?</span>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction asChild>
+                        <a href={APK_DOWNLOAD_URL}>Yes, download to update</a>
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
 
               {/* Setup steps */}

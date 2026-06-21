@@ -1,0 +1,17 @@
+{
+  "servers": [
+    {
+      "name": "napai-digital-space-main",
+      "dir": ".",
+      "cmd": "npm run dev -- --host --port 8080 --strictPort",
+      "preview": true,
+      "port": 8080
+    }
+  ],
+  "api": [
+    {
+      "path": "/napai-api",
+      "target": "http://localhost"
+    }
+  ]
+}

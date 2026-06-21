@@ -16,11 +16,37 @@ import {
   Wand2,
   Quote,
   Clock,
+  PenTool,
+  Clapperboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
 const tools = [
+  {
+    id: "content-studio",
+    title: "Content Studio",
+    description: "Design IG slides & LinkedIn images on a canvas, with an AI Assistant to create content, images, and videos. Export PNGs.",
+    icon: PenTool,
+    path: "/tools/content-studio",
+    color: "from-fuchsia-500/20 to-pink-500/20 border-fuchsia-500/30",
+  },
+  {
+    id: "slideshow-studio",
+    title: "Slideshow Studio",
+    description: "Create animated marketing videos from slides — motion & templates, with an AI Assistant to create content, images, and videos. Export WebM.",
+    icon: Clapperboard,
+    path: "/tools/slideshow-studio",
+    color: "from-purple-500/20 to-fuchsia-500/20 border-purple-500/30",
+  },
+  {
+    id: "video-studio",
+    title: "ReMotion AI Video Editor",
+    description: "A full layer-based video editor — keyframes, timeline, and audio — with an AI Assistant to create content, images, and videos. Render MP4.",
+    icon: Film,
+    path: "/tools/video-studio",
+    color: "from-rose-500/20 to-orange-500/20 border-rose-500/30",
+  },
   {
     id: "rag",
     title: "RAG Chatbot",
@@ -96,7 +122,11 @@ const tools = [
 ];
 
 const Tools = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
+
+  // Admins get the full finance dashboard; everyone else sees the placeholder.
+  const toolPath = (tool: (typeof tools)[number]) =>
+    tool.id === "finance" && isAdmin ? "/admin/finance" : tool.path;
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,7 +162,7 @@ const Tools = () => {
             </div>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {tools.map((tool, index) => {
               const Icon = tool.icon;
               return (
@@ -142,7 +172,7 @@ const Tools = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Link to={tool.path}>
+                  <Link to={toolPath(tool)}>
                     <Card
                       className={`group h-full border-2 bg-gradient-to-br ${tool.color} hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden`}
                     >

@@ -166,6 +166,7 @@ const QuantabSetup = () => {
   const [copiedSha, setCopiedSha] = useState(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     initAOS();
   }, []);
 

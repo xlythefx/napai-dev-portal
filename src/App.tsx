@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Gallery from "./pages/Gallery";
 import Auth from "./pages/Auth";
@@ -43,11 +44,16 @@ import VendotabLanding from "./pages/products/Vendotab";
 import VendotabTrial from "./pages/products/VendotabTrial";
 import QuantabSetup from "./pages/products/QuantabSetup";
 import TimeTracker from "./pages/tools/TimeTracker";
+import ContentStudio from "./pages/tools/ContentStudio";
+import SlideshowStudio from "./pages/tools/SlideshowStudio";
+import VideoStudio from "./pages/tools/VideoStudio";
+import VideoTemplateStudio from "./pages/tools/VideoTemplateStudio";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
+  <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -170,12 +176,45 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/tools/content-studio"
+            element={
+              <ProtectedRoute>
+                <ContentStudio />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tools/slideshow-studio"
+            element={
+              <ProtectedRoute>
+                <SlideshowStudio />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tools/video-studio"
+            element={
+              <ProtectedRoute>
+                <VideoStudio />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tools/video-templates"
+            element={
+              <ProtectedRoute>
+                <VideoTemplateStudio />
+              </ProtectedRoute>
+            }
+          />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

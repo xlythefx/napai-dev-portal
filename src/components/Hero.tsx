@@ -53,16 +53,6 @@ const Hero = () => {
           {/* Left: copy */}
           <div className="lg:col-span-7 space-y-8">
             <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-2.5">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/15">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-                </span>
-                <span className="text-xs font-medium tracking-wide uppercase">
-                  Digital Solutions Studio
-                </span>
-              </div>
-
               <Link
                 to="/products/quantab"
                 className="group inline-flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-gradient-to-r from-primary/15 via-emerald-500/15 to-primary/15 border border-primary/30 hover:border-primary/60 transition-colors"
@@ -241,7 +231,7 @@ const SystemDiagram = () => {
               <motion.circle
                 r="0.9"
                 fill="hsl(var(--primary))"
-                initial={{ offsetDistance: "0%" }}
+                initial={{ opacity: 0 }}
                 animate={{
                   cx: [a.x, b.x],
                   cy: [a.y, b.y],

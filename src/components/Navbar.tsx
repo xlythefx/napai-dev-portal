@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu, X, ChevronDown, ExternalLink, Smartphone } from "lucide-react";
+import { Menu, X, ChevronDown, Smartphone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
@@ -82,16 +82,11 @@ const Navbar = () => {
                         <span className="text-xs text-muted-foreground">SaaS</span>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <a
-                        href="https://flowehn.com"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex cursor-pointer items-center justify-between"
-                      >
-                        <span>Flowehn.com</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
+                    <DropdownMenuItem disabled className="justify-between">
+                      <span>Ob-Portus AI: Career Finder</span>
+                      <span className="text-xs text-muted-foreground">
+                        Coming soon
+                      </span>
                     </DropdownMenuItem>
                     <DropdownMenuItem disabled className="justify-between">
                       <span>Other</span>
@@ -193,16 +188,10 @@ const Navbar = () => {
                           <span className="flex-1">QuanTab</span>
                           <span className="text-xs text-muted-foreground">SaaS</span>
                         </Link>
-                        <a
-                          href="https://flowehn.com"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center justify-between rounded-md py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          <span>Flowehn.com</span>
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
+                        <div className="flex items-center justify-between rounded-md py-2 text-sm text-muted-foreground/60">
+                          <span>Ob-Portus AI: Career Finder</span>
+                          <span className="text-xs">Coming soon</span>
+                        </div>
                         <div className="flex items-center justify-between rounded-md py-2 text-sm text-muted-foreground/60">
                           <span>Other</span>
                           <span className="text-xs">Coming soon</span>

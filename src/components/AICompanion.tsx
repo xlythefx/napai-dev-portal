@@ -1,167 +1,336 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, X, Sparkles } from "lucide-react";
+import { Send } from "lucide-react";
 
-type Section = "hero" | "partners" | "services" | "projects" | "testimonials" | "contact";
-
-const MESSAGES: Record<Section, { title: string; body: string; emoji: string }> = {
-  hero: {
-    emoji: "👋",
-    title: "Welcome to Nap.AI",
-    body: "I'm your guide. Scroll down — I'll point things out as we go.",
-  },
-  partners: {
-    emoji: "🤝",
-    title: "Trusted partners",
-    body: "These teams already ship with us. You'd be in good company.",
-  },
-  services: {
-    emoji: "⚡",
-    title: "What we build",
-    body: "Custom systems, AI agents, automations, SaaS. Pick what you need — or all of it.",
-  },
-  projects: {
-    emoji: "🚀",
-    title: "Real work, shipped",
-    body: "Browse what we've actually delivered. Not demos — production systems.",
-  },
-  testimonials: {
-    emoji: "💬",
-    title: "Hear it from them",
-    body: "What clients say after we ship. Honest, unedited.",
-  },
-  contact: {
-    emoji: "📞",
-    title: "Ready to chat?",
-    body: "Drop us a line and let's talk about your project.",
-  },
-};
-
-const SECTION_ORDER: { id: Section; selector: string }[] = [
-  { id: "hero", selector: "section" }, // first section is hero
-  { id: "partners", selector: "#partners" },
-  { id: "services", selector: "#services" },
-  { id: "projects", selector: "#projects" },
-  { id: "testimonials", selector: "[data-section='testimonials']" },
-  { id: "contact", selector: "#contact" },
-];
+interface Message {
+  id: string;
+  text: string;
+  sender: "user" | "assistant";
+  timestamp: number;
+}
 
 const AICompanion = () => {
-  const [section, setSection] = useState<Section>("hero");
-  const [open, setOpen] = useState(true);
-  const [hasGreeted, setHasGreeted] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [isThinking, setIsThinking] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Detect which section is closest to the viewport center.
+  // Initialize position to bottom-right
   useEffect(() => {
-    const findActive = () => {
-      const center = window.scrollY + window.innerHeight / 2;
-      let active: Section = "hero";
-      for (const { id, selector } of SECTION_ORDER) {
-        const el = document.querySelector(selector) as HTMLElement | null;
-        if (!el) continue;
-        const top = el.offsetTop;
-        if (center >= top - 100) active = id;
-      }
-      setSection((prev) => (prev !== active ? active : prev));
+    const updatePosition = () => {
+      setPosition({
+        x: window.innerWidth - 120,
+        y: window.innerHeight - 120,
+      });
     };
-
-    findActive();
-    window.addEventListener("scroll", findActive, { passive: true });
-    window.addEventListener("resize", findActive);
-    return () => {
-      window.removeEventListener("scroll", findActive);
-      window.removeEventListener("resize", findActive);
-    };
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
   }, []);
 
-  // Auto-open the bubble when the section changes (after the initial greeting).
-  useEffect(() => {
-    if (!hasGreeted) {
-      // hide initial greeting after a few seconds
-      const t = setTimeout(() => {
-        setOpen(false);
-        setHasGreeted(true);
-      }, 5500);
-      return () => clearTimeout(t);
-    }
-    setOpen(true);
-    const t = setTimeout(() => setOpen(false), 4500);
-    return () => clearTimeout(t);
-  }, [section]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Handle drag start
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDragging(true);
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
 
-  const msg = MESSAGES[section];
+    setDragOffset({
+      x: clientX - position.x,
+      y: clientY - position.y,
+    });
+  };
+
+  // Handle drag move
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+      const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+
+      setPosition({
+        x: Math.max(0, Math.min(window.innerWidth - 100, clientX - dragOffset.x)),
+        y: Math.max(0, Math.min(window.innerHeight - 100, clientY - dragOffset.y)),
+      });
+    };
+
+    const handleEnd = () => setIsDragging(false);
+
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("touchmove", handleMove);
+    window.addEventListener("mouseup", handleEnd);
+    window.addEventListener("touchend", handleEnd);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("mouseup", handleEnd);
+      window.removeEventListener("touchend", handleEnd);
+    };
+  }, [isDragging, dragOffset]);
+
+  // Handle sending message
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
+
+    const userMessage: Message = {
+      id: `msg-${Date.now()}`,
+      text: inputValue,
+      sender: "user",
+      timestamp: Date.now(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
+
+    // Show thinking state
+    setIsThinking(true);
+
+    // Simulate assistant thinking and response
+    setTimeout(() => {
+      const assistantMessage: Message = {
+        id: `msg-${Date.now()}`,
+        text: `I appreciate your message: "${userMessage.text}" — I'm here to help guide you through this amazing platform!`,
+        sender: "assistant",
+        timestamp: Date.now(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+      setIsThinking(false);
+
+      // Auto-dismiss message after 5 seconds
+      setTimeout(() => {
+        setMessages((prev) => prev.filter((m) => m.id !== assistantMessage.id));
+      }, 5000);
+    }, 1200);
+
+    // Auto-dismiss user message after 4 seconds
+    setTimeout(() => {
+      setMessages((prev) => prev.filter((m) => m.id !== userMessage.id));
+    }, 4000);
+  };
+
+  // Handle Enter key
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  // Get last few visible messages
+  const visibleMessages = messages.slice(-5);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
-      {/* Speech bubble */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            key={section}
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 320, damping: 24 }}
-            className="pointer-events-auto relative max-w-[260px] sm:max-w-[300px]"
-          >
-            <div className="relative rounded-2xl border border-border bg-background/95 backdrop-blur-xl shadow-2xl shadow-primary/10 p-3.5 pr-4">
-              {/* glow */}
-              <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 via-transparent to-emerald-500/20 rounded-2xl blur-md -z-10 opacity-60" />
-
-              <button
-                onClick={() => setOpen(false)}
-                className="absolute top-2 right-2 w-5 h-5 rounded-full inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                aria-label="Dismiss"
+    <motion.div
+      ref={containerRef}
+      className="fixed z-50 pointer-events-none"
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+      }}
+    >
+      {/* Message bubbles container */}
+      <div className="absolute bottom-24 right-0 flex flex-col gap-2 w-64 max-w-xs pointer-events-auto">
+        <AnimatePresence mode="popLayout">
+          {visibleMessages.map((msg) => (
+            <motion.div
+              key={msg.id}
+              initial={{
+                opacity: 0,
+                y: msg.sender === "user" ? 20 : -20,
+                scale: 0.8,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                scale: 1,
+              }}
+              exit={{
+                opacity: 0,
+                y: msg.sender === "user" ? 20 : -20,
+                scale: 0.8,
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+              }}
+              className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-[85%] px-3 py-2 rounded-lg text-sm ${
+                  msg.sender === "user"
+                    ? "bg-primary text-primary-foreground rounded-br-none"
+                    : "bg-muted text-foreground rounded-bl-none border border-border"
+                }`}
               >
-                <X className="w-3 h-3" />
-              </button>
+                <p className="break-words">{msg.text}</p>
+              </div>
+            </motion.div>
+          ))}
 
-              <div className="flex items-start gap-2.5 pr-3">
-                <div className="text-xl leading-none mt-0.5">{msg.emoji}</div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1 mb-0.5">
-                    <Sparkles className="w-2.5 h-2.5 text-primary" />
-                    <p className="text-[9px] uppercase tracking-widest font-semibold text-primary/80">
-                      Nap.AI Companion
-                    </p>
-                  </div>
-                  <p className="text-sm font-semibold leading-snug">{msg.title}</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{msg.body}</p>
+          {/* Thinking indicator */}
+          {isThinking && (
+            <motion.div
+              key="thinking"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="flex justify-start"
+            >
+              <div className="px-3 py-2 rounded-lg bg-muted text-foreground border border-border rounded-bl-none">
+                <div className="flex gap-1">
+                  <motion.span
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+                    className="w-1.5 h-1.5 bg-primary rounded-full"
+                  />
+                  <motion.span
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 0.6, repeat: Infinity, delay: 0.1 }}
+                    className="w-1.5 h-1.5 bg-primary rounded-full"
+                  />
+                  <motion.span
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+                    className="w-1.5 h-1.5 bg-primary rounded-full"
+                  />
                 </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-              {/* tail */}
-              <div className="absolute -bottom-1.5 right-7 w-3 h-3 bg-background border-r border-b border-border rotate-45" />
-            </div>
+      {/* Input field */}
+      {(messages.length > 0 || isThinking) && (
+        <motion.div
+          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="absolute bottom-24 right-0 w-64 pointer-events-auto"
+        >
+          <div className="flex gap-2 items-end bg-background/95 backdrop-blur-sm border border-border rounded-lg p-2 shadow-lg shadow-black/10">
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Message..."
+              disabled={isThinking}
+              className="flex-1 bg-transparent text-sm outline-none placeholder-muted-foreground disabled:opacity-50"
+            />
+            <motion.button
+              onClick={handleSendMessage}
+              disabled={!inputValue.trim() || isThinking}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-1 text-primary hover:bg-muted rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Send message"
+            >
+              <Send className="w-4 h-4" />
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Draggable Robot */}
+      <motion.button
+        onMouseDown={handleDragStart}
+        onTouchStart={handleDragStart}
+        type="button"
+        onClick={() => {
+          if (!isDragging) {
+            inputRef.current?.focus();
+          }
+        }}
+        className="pointer-events-auto cursor-grab active:cursor-grabbing relative w-20 h-24 rounded-full group"
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.96 }}
+        drag={false}
+      >
+        {/* Glow effect */}
+        <motion.div
+          className="absolute -inset-2 rounded-full bg-gradient-to-br from-primary/40 via-transparent to-primary/20 blur-lg opacity-60 group-hover:opacity-100"
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ duration: 3, repeat: Infinity }}
+        />
+
+        {/* Robot body */}
+        <div className="relative w-full h-full">
+          {/* Head */}
+          <motion.div
+            animate={{ y: [0, -3, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-1 left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 border-2 border-primary/60 shadow-lg"
+          >
+            {/* Eyes */}
+            <div className="absolute top-3.5 left-2.5 w-1.5 h-1.5 rounded-full bg-white/90" />
+            <div className="absolute top-3.5 right-2.5 w-1.5 h-1.5 rounded-full bg-white/90" />
+
+            {/* Antenna */}
+            <motion.div
+              animate={{ rotate: [-5, 5, -5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-1 h-3 bg-gradient-to-t from-primary to-primary/60 rounded-full origin-bottom"
+            />
+
+            {/* Smile */}
+            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-2 border-b-2 border-white/70 rounded-full" />
+          </motion.div>
+
+          {/* Body */}
+          <motion.div
+            animate={{ y: [0, -3, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-12 left-1/2 transform -translate-x-1/2 w-10 h-8 rounded-lg bg-gradient-to-b from-primary/90 to-primary/70 border-2 border-primary/60 shadow-lg"
+          >
+            {/* Chest plate */}
+            <div className="absolute inset-2 rounded border-2 border-primary/40 opacity-60" />
+          </motion.div>
+
+          {/* Left arm */}
+          <motion.div
+            animate={{ rotateZ: [-15, 15, -15] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-12 -left-1 w-3 h-8 rounded-full bg-gradient-to-r from-primary/80 to-primary/60 shadow-md origin-top-right"
+          />
+
+          {/* Right arm */}
+          <motion.div
+            animate={{ rotateZ: [15, -15, 15] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-12 -right-1 w-3 h-8 rounded-full bg-gradient-to-l from-primary/80 to-primary/60 shadow-md origin-top-left"
+          />
+
+          {/* Status light (pulsing) */}
+          <motion.div
+            animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50"
+          />
+        </div>
+
+        {/* Drag hint */}
+        {!isDragging && messages.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+            className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-[10px] text-muted-foreground whitespace-nowrap pointer-events-none"
+          >
+            Drag me around
           </motion.div>
         )}
-      </AnimatePresence>
-
-      {/* Floating bot */}
-      <motion.button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        animate={{ y: [0, -6, 0] }}
-        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-        whileHover={{ scale: 1.1, rotate: -6 }}
-        whileTap={{ scale: 0.92 }}
-        aria-label="Toggle Nap.AI Companion"
-        className="pointer-events-auto relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-2xl shadow-primary/30 inline-flex items-center justify-center group"
-      >
-        {/* halo */}
-        <span className="absolute inset-0 rounded-2xl bg-primary animate-ping opacity-20" />
-        {/* outer glow */}
-        <span className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-primary/30 via-transparent to-emerald-500/20 blur-xl opacity-70 group-hover:opacity-100 transition-opacity" />
-
-        <Bot className="w-6 h-6 sm:w-7 sm:h-7 relative" />
-
-        {/* unread / live dot */}
-        <span className="absolute -top-1 -right-1 flex h-3 w-3">
-          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-70 animate-ping" />
-          <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500 border-2 border-background" />
-        </span>
       </motion.button>
-    </div>
+    </motion.div>
   );
 };
 

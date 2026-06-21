@@ -117,3 +117,12 @@ All colors MUST be HSL.
     background: hsl(var(--foreground));
   }
 }
+
+/* Scrollable but with no visible scrollbar (e.g. the AI "thinking" stream). */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / old Edge */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* WebKit */
+}

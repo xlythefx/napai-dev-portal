@@ -9,7 +9,6 @@ import Testimonials from "@/components/Testimonials";
 import Partners from "@/components/Partners";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
-import AICompanion from "@/components/AICompanion";
 import { initAOS } from "@/lib/aos-init";
 
 const SECRET = "goadmin";
@@ -49,7 +48,6 @@ const Index = () => {
       <Testimonials />
       <Contact />
       <Footer />
-      <AICompanion />
     </div>
   );
 };

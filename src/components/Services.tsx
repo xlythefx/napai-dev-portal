@@ -103,7 +103,6 @@ const techSlugs = [
   "typescript",
   "javascript",
   "dart",
-  "java",
   "react",
   "flutter",
   "android",
@@ -113,7 +112,7 @@ const techSlugs = [
   "express",
   "nextdotjs",
   "prisma",
-  "amazonaws",
+  "amazonwebservices",
   "postgresql",
   "firebase",
   "nginx",
@@ -126,7 +125,6 @@ const techSlugs = [
   "jira",
   "github",
   "gitlab",
-  "visualstudiocode",
   "androidstudio",
   "sonarqube",
   "figma",
@@ -254,12 +252,6 @@ const Services = () => {
           transition={{ duration: 0.6 }}
           className="text-center max-w-3xl mx-auto mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/15 mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            <span className="text-xs font-medium tracking-wide uppercase">
-              What we do
-            </span>
-          </div>
           <h2 className="text-4xl md:text-6xl font-bold mb-5 tracking-tighter leading-tight">
             Services for teams that{" "}
             <span className="text-primary">build serious things</span>
