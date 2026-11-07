@@ -9,6 +9,7 @@ import { AdminRoute } from "@/components/AdminRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Gallery from "./pages/Gallery";
+import Weather from "./pages/Weather";
 import Auth from "./pages/Auth";
 import DeveloperPortal from "./pages/DeveloperPortal";
 import DeveloperSignup from "./pages/DeveloperSignup";
@@ -63,6 +64,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/gallery" element={<Gallery />} />
+          {/* Public on purpose — no ProtectedRoute wrapper. */}
+          <Route path="/weather" element={<Weather />} />
           <Route path="/products/quantab" element={<VendotabLanding />} />
           <Route path="/products/quantab/trial" element={<VendotabTrial />} />
           <Route path="/products/quantab/setup" element={<QuantabSetup />} />

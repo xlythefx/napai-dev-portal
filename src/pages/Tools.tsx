@@ -18,11 +18,21 @@ import {
   Clock,
   PenTool,
   Clapperboard,
+  CloudRain,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
 const tools = [
+  {
+    id: "weather",
+    title: "Rizal Weather & Flood Watch",
+    description:
+      "Will it rain in Cainta, Taytay, Angono or Binangonan — plus flood risk, river levels, typhoons and habagat. Public, no sign-in needed.",
+    icon: CloudRain,
+    path: "/weather",
+    color: "from-sky-500/20 to-cyan-500/20 border-sky-500/30",
+  },
   {
     id: "content-studio",
     title: "Content Studio",

@@ -38,6 +38,18 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
+    /* PAGASA warning scale.
+       The palette is otherwise monochrome, but these are not decoration: PAGASA
+       publishes rainfall warnings named literally "YELLOW / ORANGE / RED", and
+       river gauges as alert / alarm / critical. Rendering a red warning in grey
+       would misreport a safety signal, so the scale gets real tokens and is used
+       only for dots, bars, borders and washes — never as flat filled panels. */
+    --warn-calm: 152 45% 38%;
+    --warn-advisory: 199 78% 40%;
+    --warn-yellow: 45 93% 40%;
+    --warn-orange: 25 90% 46%;
+    --warn-red: 0 84% 55%;
+
     /* Black & White gradients */
     --gradient-dark: linear-gradient(135deg, hsl(0 0% 5%) 0%, hsl(0 0% 12%) 100%);
     --gradient-light: linear-gradient(135deg, hsl(0 0% 98%) 0%, hsl(0 0% 95%) 100%);
@@ -82,6 +94,125 @@ All colors MUST be HSL.
     --border: 0 0% 15%;
     --input: 0 0% 15%;
     --ring: 0 0% 98%;
+
+    /* Lifted for contrast against the near-black dark background. */
+    --warn-calm: 152 50% 50%;
+    --warn-advisory: 199 85% 58%;
+    --warn-yellow: 45 95% 55%;
+    --warn-orange: 25 95% 60%;
+    --warn-red: 0 84% 63%;
+  }
+}
+
+@layer components {
+  /*
+   * Glass panel used across the weather page.
+   *
+   * Opacity is deliberately high in light mode — a near-transparent white card
+   * on a light ground reads as a rendering fault, not as glass, and drops text
+   * contrast below AA. Dark mode can afford to be thinner because the card
+   * token already sits close to the background.
+   *
+   * backdrop-filter only does something when there is something behind it, so
+   * this is paired with <AmbientBackdrop />.
+   */
+  .glass-panel {
+    background: hsl(var(--card) / 0.82);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid hsl(var(--border) / 0.9);
+    box-shadow:
+      0 1px 0 0 hsl(0 0% 100% / 0.5) inset,
+      0 8px 32px -12px hsl(0 0% 0% / 0.12);
+  }
+
+  .dark .glass-panel {
+    background: hsl(var(--card) / 0.55);
+    border-color: hsl(var(--border) / 1);
+    box-shadow:
+      0 1px 0 0 hsl(0 0% 100% / 0.06) inset,
+      0 8px 32px -12px hsl(0 0% 0% / 0.5);
+  }
+
+  /*
+   * Animated weather glyphs (see components/weather/WeatherIcon.tsx).
+   * Each part animates on its own transform, all cheap compositor work.
+   * Everything stops under prefers-reduced-motion.
+   */
+  .wx-icon * {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .wx-cloud {
+    animation: wx-drift 5s ease-in-out infinite;
+  }
+  .wx-cloud-back {
+    animation: wx-drift 7s ease-in-out infinite reverse;
+  }
+  .wx-sun {
+    animation: wx-spin 24s linear infinite;
+  }
+  .wx-sun-core {
+    animation: wx-breathe 4s ease-in-out infinite;
+  }
+  .wx-drop {
+    animation: wx-fall 1.4s ease-in infinite;
+  }
+  .wx-drop:nth-child(2) { animation-delay: 0.45s; }
+  .wx-drop:nth-child(3) { animation-delay: 0.9s; }
+  .wx-drizzle {
+    animation: wx-fall 2.2s ease-in infinite;
+  }
+  .wx-drizzle:nth-child(2) { animation-delay: 0.7s; }
+  .wx-drizzle:nth-child(3) { animation-delay: 1.4s; }
+  .wx-bolt {
+    animation: wx-flash 3.2s ease-out infinite;
+  }
+  .wx-fog {
+    animation: wx-drift 4s ease-in-out infinite;
+  }
+  .wx-fog:nth-child(2) { animation-direction: reverse; animation-duration: 5s; }
+  .wx-fog:nth-child(3) { animation-duration: 6s; }
+  .wx-moon {
+    animation: wx-breathe 6s ease-in-out infinite;
+  }
+
+  @keyframes wx-drift {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(1.6px); }
+  }
+  @keyframes wx-fall {
+    0% { transform: translateY(-1.5px); opacity: 0; }
+    25% { opacity: 1; }
+    100% { transform: translateY(4px); opacity: 0; }
+  }
+  @keyframes wx-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes wx-breathe {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.06); opacity: 0.9; }
+  }
+  @keyframes wx-flash {
+    0%, 86%, 100% { opacity: 0.35; }
+    88%, 92% { opacity: 1; }
+    90% { opacity: 0.5; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wx-icon * {
+      animation: none !important;
+    }
+  }
+
+  /* Nested surface — sits on a glass panel without stacking another blur. */
+  .glass-inset {
+    background: hsl(var(--muted) / 0.55);
+    border: 1px solid hsl(var(--border) / 0.7);
+  }
+
+  .dark .glass-inset {
+    background: hsl(var(--foreground) / 0.04);
   }
 }
 

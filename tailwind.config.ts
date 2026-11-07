@@ -47,6 +47,14 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // PAGASA warning scale — see the note in src/index.css.
+        warn: {
+          calm: "hsl(var(--warn-calm))",
+          advisory: "hsl(var(--warn-advisory))",
+          yellow: "hsl(var(--warn-yellow))",
+          orange: "hsl(var(--warn-orange))",
+          red: "hsl(var(--warn-red))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

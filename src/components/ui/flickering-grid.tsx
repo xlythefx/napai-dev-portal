@@ -8,6 +8,8 @@ import React, {
   useState,
 } from "react";
 
+import { useThemeColor } from "@/lib/theme-color";
+
 interface FlickeringGridProps {
   squareSize?: number;
   gridGap?: number;
@@ -23,7 +25,7 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
   squareSize = 4,
   gridGap = 6,
   flickerChance = 0.3,
-  color = "rgb(0, 0, 0)",
+  color = "hsl(var(--foreground))",
   width,
   height,
   className,
@@ -33,6 +35,11 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isInView, setIsInView] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+
+  // `color` may be a design token such as `hsl(var(--primary))`. Canvas cannot
+  // parse CSS custom properties, so resolve it against the DOM first — and
+  // re-resolve when the theme flips.
+  const resolvedColor = useThemeColor(color);
 
   const memoizedColor = useMemo(() => {
     const toRGBA = (color: string) => {
@@ -48,8 +55,8 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
       const [r, g, b] = Array.from(ctx.getImageData(0, 0, 1, 1).data);
       return `rgba(${r}, ${g}, ${b},`;
     };
-    return toRGBA(color);
-  }, [color]);
+    return toRGBA(resolvedColor);
+  }, [resolvedColor]);
 
   const setupCanvas = useCallback(
     (canvas: HTMLCanvasElement, width: number, height: number) => {

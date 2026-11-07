@@ -145,6 +145,8 @@ export async function financeSeed(params: {
 
 // ---- Accounts (bank/wallet balances) ----
 
+export type AccountStatus = "active" | "archived";
+
 export interface FinanceAccount {
   id: number;
   name: string;
@@ -152,16 +154,24 @@ export interface FinanceAccount {
   currency: string;
   fx_to_base: number; // rate from `currency` -> base PHP
   color: string | null;
+  notes?: string | null;
+  status?: AccountStatus;
   sort_order: number;
   created_by?: number | null;
   created_at?: string;
   updated_at?: string;
-  balance_base?: number; // present in overview response
+  balance_base?: number; // present in overview + list + save responses
+}
+
+export interface ListAccountsResult {
+  base_currency: string;
+  accounts: FinanceAccount[];
+  total_balance_base: number; // active accounts only
 }
 
 export async function financeListAccounts(params: {
   requester_email: string;
-}): Promise<{ accounts: FinanceAccount[] }> {
+}): Promise<ListAccountsResult> {
   return post(`${BASE}/accounts/list.php`, params);
 }
 
@@ -173,7 +183,10 @@ export async function financeSaveAccount(params: {
   currency?: string;
   fx_to_base?: number;
   color?: string | null;
+  notes?: string | null;
+  status?: AccountStatus;
   sort_order?: number;
+  note?: string | null; // optional reason recorded on the audit trail
 }): Promise<{ success: boolean; account: FinanceAccount }> {
   return post(`${BASE}/accounts/save.php`, params);
 }
@@ -181,8 +194,43 @@ export async function financeSaveAccount(params: {
 export async function financeDeleteAccount(params: {
   requester_email: string;
   id: number;
+  note?: string | null; // optional reason recorded on the audit trail
 }): Promise<{ success: boolean }> {
   return post(`${BASE}/accounts/delete.php`, params);
+}
+
+// ---- Bank-account change trail (audit log) ----
+
+export type AccountLogAction = "create" | "update" | "archive" | "restore" | "delete";
+
+export interface AccountChange {
+  field: string;
+  from: string | number | null;
+  to: string | number | null;
+}
+
+export interface FinanceAccountLog {
+  id: number;
+  account_id: number | null;
+  account_name: string | null;
+  action: AccountLogAction;
+  changes: AccountChange[] | null;
+  balance_before: number | null;
+  balance_after: number | null;
+  balance_delta: number | null;
+  currency: string | null;
+  note: string | null;
+  changed_by: number | null;
+  changed_by_email: string | null;
+  changed_at: string;
+}
+
+export async function financeListAccountLogs(params: {
+  requester_email: string;
+  account_id?: number; // omit for recent changes across all accounts
+  limit?: number;
+}): Promise<{ logs: FinanceAccountLog[] }> {
+  return post(`${BASE}/accounts/logs.php`, params);
 }
 
 // ---- Recurring monthly income/expense items ----
@@ -332,6 +380,58 @@ export async function financeDeleteAllocation(params: {
   return post(`${BASE}/capital_allocations/delete.php`, params);
 }
 
+// ---- Loaning power (borrowing capacity added to Buying Power) ----
+
+export interface FinanceLoaning {
+  id: number;
+  name: string;            // lender / source, e.g. "Hexagon CC"
+  icon: string;            // lucide icon key (credit-card, banknote, coins…)
+  limit_amount: number;    // total credit-to-cash limit in `currency`
+  used_amount: number;     // already drawn / outstanding
+  currency: string;
+  fx_to_base: number;      // rate from `currency` -> base PHP
+  color: string | null;
+  notes: string | null;
+  sort_order: number;
+  created_by?: number | null;
+  created_at?: string;
+  updated_at?: string;
+  // present in overview response
+  limit_base?: number;     // limit_amount * fx_to_base
+  used_base?: number;      // used_amount * fx_to_base
+  available?: number;      // max(0, limit_amount - used_amount)
+  available_base?: number; // available * fx_to_base
+}
+
+export async function financeListLoaning(params: {
+  requester_email: string;
+}): Promise<{ loaning: FinanceLoaning[] }> {
+  return post(`${BASE}/loaning_power/list.php`, params);
+}
+
+export async function financeSaveLoaning(params: {
+  requester_email: string;
+  id?: number;
+  name: string;
+  icon?: string;
+  limit_amount: number;
+  used_amount?: number;
+  currency?: string;
+  fx_to_base?: number;
+  color?: string | null;
+  notes?: string | null;
+  sort_order?: number;
+}): Promise<{ success: boolean; loan: FinanceLoaning }> {
+  return post(`${BASE}/loaning_power/save.php`, params);
+}
+
+export async function financeDeleteLoaning(params: {
+  requester_email: string;
+  id: number;
+}): Promise<{ success: boolean }> {
+  return post(`${BASE}/loaning_power/delete.php`, params);
+}
+
 // ---- Accounts & runway overview ----
 
 export interface FinanceOverview {
@@ -341,6 +441,11 @@ export interface FinanceOverview {
   total_allocation_base: number;   // Σ capital allocations in base PHP
   spendable_balance_base: number;  // total_balance_base − total_allocation_base
   capital_allocations: FinanceAllocation[];
+  loaning_power: FinanceLoaning[];
+  total_loaning_limit_base: number;       // Σ credit limits in base PHP
+  total_loaning_used_base: number;        // Σ drawn / outstanding in base PHP
+  total_loaning_available_base: number;   // Σ available credit in base PHP
+  buying_power_base: number;              // spendable_balance_base + total_loaning_available_base
   balances_by_currency: Array<{ currency: string; total: number }>;
   monthly_income_base: number;
   monthly_expense_base: number;

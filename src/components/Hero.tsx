@@ -25,7 +25,10 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-background">
+    <section
+      id="home"
+      className="relative min-h-screen flex items-center overflow-hidden bg-background"
+    >
       {/* Background photo — shifted left so tablet reads on the left side */}
       <div
         className="absolute inset-0 z-0 bg-cover"
@@ -105,25 +108,6 @@ const Hero = () => {
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </a>
-            </motion.div>
-
-            {/* Capability chips */}
-            <motion.div variants={itemVariants} className="pt-6">
-              <div className="flex flex-wrap items-center gap-2">
-                {[
-                  "Customized Systems",
-                  "AI Agentic Integration",
-                  "Automation Pipelines",
-                  "SaaS Products",
-                ].map((label) => (
-                  <span
-                    key={label}
-                    className="px-3 py-1.5 text-xs font-medium rounded-full border border-border bg-card/60 backdrop-blur-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
             </motion.div>
           </div>
 

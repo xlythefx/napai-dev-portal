@@ -32,3 +32,6 @@ dist-ssr
 
 # Remotion render bundle cache
 .remotion-cache/
+
+# Vite leaves these behind when the dev server crashes mid-reload
+*.timestamp-*.mjs

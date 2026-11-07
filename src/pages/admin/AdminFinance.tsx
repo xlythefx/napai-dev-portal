@@ -13,7 +13,6 @@ import {
   DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -26,28 +25,31 @@ import {
 import {
   TrendingUp, TrendingDown, Wallet, DollarSign, Plus, Pencil, Trash2,
   Loader2, ChevronLeft, ChevronRight, Database, AlertCircle,
-  Landmark, Repeat, Timer, ArrowUpRight, ArrowDownRight, Eye, EyeOff,
+  Landmark, Timer, ArrowUpRight, ArrowDownRight, Eye, EyeOff,
   Target, CheckCircle2, Car, Bike, Home, Trophy, Plane, Gem, Rocket,
   Briefcase, GraduationCap, Smartphone, Gift, PiggyBank, Building2, Watch, Heart,
-  Lock, ShieldCheck,
+  Lock, ShieldCheck, CreditCard, Banknote, Coins, HandCoins, Zap,
   type LucideIcon,
 } from "lucide-react";
 import {
   financeListTransactions, financeGetSummary, financeCreateTransaction,
   financeUpdateTransaction, financeDeleteTransaction, financeSeed,
-  financeGetOverview, financeListRecurring, financeSaveRecurring, financeDeleteRecurring,
-  financeSaveAccount, financeDeleteAccount, financeSaveGoal, financeDeleteGoal,
+  financeGetOverview,
+  financeSaveGoal, financeDeleteGoal,
   financeSaveAllocation, financeDeleteAllocation,
+  financeSaveLoaning, financeDeleteLoaning,
   INCOME_CATEGORIES, EXPENSE_CATEGORIES, ALL_CATEGORIES, categoryLabel,
   type FinanceTransaction, type FinanceSummary, type TransactionType, type Priority,
-  type FinanceOverview, type FinanceAccount, type RecurringItem, type FinanceGoal,
-  type FinanceAllocation,
+  type FinanceOverview, type FinanceGoal,
+  type FinanceAllocation, type FinanceLoaning,
 } from "@/lib/financeApi";
 import {
   INK, MONO_RAMP, shortMonth, kFmt, pctChange,
   MotionGrid, MotionItem, AnimatedNumber, Money, StatCard, ChartCard, MonoTooltip,
   SkeletonCard, SkeletonChart, HatchDef, MaskProvider, useMask,
 } from "@/components/finance/financeUi";
+import BankAccounts from "@/components/finance/BankAccounts";
+import RecurringItems from "@/components/finance/RecurringItems";
 
 const CURRENCIES = ["PHP", "USD", "EUR", "SGD"];
 
@@ -122,42 +124,6 @@ const blankForm = (): TxForm => ({
 //  Accounts & Runway view
 // ============================================================
 
-interface AccountForm {
-  open: boolean;
-  mode: "add" | "edit";
-  id?: number;
-  name: string;
-  balance: string;
-  currency: string;
-  fx_to_base: string;
-  color: string;
-}
-const blankAccountForm = (): AccountForm => ({
-  open: false, mode: "add",
-  name: "", balance: "", currency: "PHP", fx_to_base: "1", color: "",
-});
-
-interface RecurringForm {
-  open: boolean;
-  mode: "add" | "edit";
-  id?: number;
-  type: TransactionType;
-  label: string;
-  category: string;
-  amount: string;
-  currency: string;
-  fx_to_base: string;
-  day_of_month: string;
-  active: boolean;
-  notes: string;
-}
-const blankRecurringForm = (): RecurringForm => ({
-  open: false, mode: "add",
-  type: "expense", label: "", category: "subscription",
-  amount: "", currency: "PHP", fx_to_base: "1", day_of_month: "",
-  active: true, notes: "",
-});
-
 // ---- Financial goals (net-worth milestones) ----
 const GOAL_ICONS: Record<string, LucideIcon> = {
   target: Target, trophy: Trophy, rocket: Rocket, piggy: PiggyBank,
@@ -214,6 +180,33 @@ const blankAllocForm = (): AllocForm => ({
   fx_to_base: "1", color: "", notes: "",
 });
 
+// ---- Loaning power (borrowing capacity, added to Buying Power) ----
+const LOAN_ICONS: Record<string, LucideIcon> = {
+  "credit-card": CreditCard, banknote: Banknote, coins: Coins, handcoins: HandCoins,
+  landmark: Landmark, building: Building2, briefcase: Briefcase, wallet: Wallet,
+};
+const LOAN_ICON_KEYS = Object.keys(LOAN_ICONS);
+const loanIcon = (key: string): LucideIcon => LOAN_ICONS[key] ?? CreditCard;
+
+interface LoanForm {
+  open: boolean;
+  mode: "add" | "edit";
+  id?: number;
+  name: string;
+  icon: string;
+  limit_amount: string;
+  used_amount: string;
+  currency: string;
+  fx_to_base: string;
+  color: string;
+  notes: string;
+}
+const blankLoanForm = (): LoanForm => ({
+  open: false, mode: "add",
+  name: "", icon: "credit-card", limit_amount: "", used_amount: "",
+  currency: "PHP", fx_to_base: "1", color: "", notes: "",
+});
+
 const AccountsRunway = ({ email }: { email: string }) => {
   const { toast } = useToast();
   const reduce = useReducedMotion();
@@ -221,29 +214,20 @@ const AccountsRunway = ({ email }: { email: string }) => {
   const yFmt = (v: number) => (masked ? "•" : kFmt(v));
 
   const [overview, setOverview] = useState<FinanceOverview | null>(null);
-  const [recurring, setRecurring] = useState<RecurringItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [acctForm, setAcctForm] = useState<AccountForm>(blankAccountForm());
-  const [recForm, setRecForm] = useState<RecurringForm>(blankRecurringForm());
   const [goalForm, setGoalForm] = useState<GoalForm>(blankGoalForm());
   const [allocForm, setAllocForm] = useState<AllocForm>(blankAllocForm());
-  const [savingAcct, setSavingAcct] = useState(false);
-  const [savingRec, setSavingRec] = useState(false);
+  const [loanForm, setLoanForm] = useState<LoanForm>(blankLoanForm());
   const [savingGoal, setSavingGoal] = useState(false);
   const [savingAlloc, setSavingAlloc] = useState(false);
+  const [savingLoan, setSavingLoan] = useState(false);
 
   const fetchAll = useCallback(() => {
     if (!email) return;
     setLoading(true);
-    Promise.all([
-      financeGetOverview({ requester_email: email }),
-      financeListRecurring({ requester_email: email }),
-    ])
-      .then(([ov, rec]) => {
-        setOverview(ov);
-        setRecurring(rec.recurring);
-      })
+    financeGetOverview({ requester_email: email })
+      .then((ov) => setOverview(ov))
       .catch((e) => toast({
         title: "Failed to load accounts",
         description: e instanceof Error ? e.message : "Try again",
@@ -253,118 +237,6 @@ const AccountsRunway = ({ email }: { email: string }) => {
   }, [email]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
-
-  // ---- Account dialog ----
-  const openAddAccount = () => setAcctForm({ ...blankAccountForm(), open: true, mode: "add" });
-  const openEditAccount = (a: FinanceAccount) => setAcctForm({
-    open: true, mode: "edit", id: a.id,
-    name: a.name, balance: String(a.balance), currency: a.currency,
-    fx_to_base: String(a.fx_to_base), color: a.color ?? "",
-  });
-
-  const saveAccount = async () => {
-    const balance = parseFloat(acctForm.balance || "0");
-    const fx = parseFloat(acctForm.fx_to_base || "1");
-    if (!acctForm.name.trim() || isNaN(balance)) {
-      toast({ title: "Name and a valid balance are required", variant: "destructive" });
-      return;
-    }
-    setSavingAcct(true);
-    try {
-      await financeSaveAccount({
-        requester_email: email,
-        id: acctForm.mode === "edit" ? acctForm.id : undefined,
-        name: acctForm.name.trim(),
-        balance,
-        currency: acctForm.currency,
-        fx_to_base: isNaN(fx) || fx <= 0 ? 1 : fx,
-        color: acctForm.color.trim() || null,
-      });
-      toast({ title: acctForm.mode === "add" ? "Account added" : "Account updated" });
-      setAcctForm(blankAccountForm());
-      fetchAll();
-    } catch (e) {
-      toast({ title: "Save failed", description: e instanceof Error ? e.message : "Try again", variant: "destructive" });
-    } finally {
-      setSavingAcct(false);
-    }
-  };
-
-  const deleteAccount = async (a: FinanceAccount) => {
-    if (!(await confirm({
-      title: `Delete "${a.name}"?`,
-      description: "This bank account will be removed permanently.",
-      confirmText: "Delete account",
-      tone: "danger",
-    }))) return;
-    try {
-      await financeDeleteAccount({ requester_email: email, id: a.id });
-      toast({ title: "Deleted" });
-      fetchAll();
-    } catch (e) {
-      toast({ title: "Delete failed", description: e instanceof Error ? e.message : "Try again", variant: "destructive" });
-    }
-  };
-
-  // ---- Recurring dialog ----
-  const openAddRecurring = () => setRecForm({ ...blankRecurringForm(), open: true, mode: "add" });
-  const openEditRecurring = (r: RecurringItem) => setRecForm({
-    open: true, mode: "edit", id: r.id,
-    type: r.type, label: r.label, category: r.category,
-    amount: String(r.amount), currency: r.currency, fx_to_base: String(r.fx_to_base),
-    day_of_month: r.day_of_month != null ? String(r.day_of_month) : "",
-    active: r.active === 1, notes: r.notes ?? "",
-  });
-
-  const recCategories = recForm.type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
-
-  const saveRecurring = async () => {
-    const amount = parseFloat(recForm.amount);
-    const fx = parseFloat(recForm.fx_to_base || "1");
-    if (!recForm.label.trim() || isNaN(amount) || amount < 0) {
-      toast({ title: "Label and a valid amount are required", variant: "destructive" });
-      return;
-    }
-    setSavingRec(true);
-    try {
-      await financeSaveRecurring({
-        requester_email: email,
-        id: recForm.mode === "edit" ? recForm.id : undefined,
-        type: recForm.type,
-        label: recForm.label.trim(),
-        category: recForm.category,
-        amount,
-        currency: recForm.currency,
-        fx_to_base: isNaN(fx) || fx <= 0 ? 1 : fx,
-        day_of_month: recForm.day_of_month ? parseInt(recForm.day_of_month, 10) : null,
-        active: recForm.active,
-        notes: recForm.notes.trim() || null,
-      });
-      toast({ title: recForm.mode === "add" ? "Item added" : "Item updated" });
-      setRecForm(blankRecurringForm());
-      fetchAll();
-    } catch (e) {
-      toast({ title: "Save failed", description: e instanceof Error ? e.message : "Try again", variant: "destructive" });
-    } finally {
-      setSavingRec(false);
-    }
-  };
-
-  const deleteRecurring = async (r: RecurringItem) => {
-    if (!(await confirm({
-      title: `Delete "${r.label}"?`,
-      description: "This recurring item will be removed permanently.",
-      confirmText: "Delete item",
-      tone: "danger",
-    }))) return;
-    try {
-      await financeDeleteRecurring({ requester_email: email, id: r.id });
-      toast({ title: "Deleted" });
-      fetchAll();
-    } catch (e) {
-      toast({ title: "Delete failed", description: e instanceof Error ? e.message : "Try again", variant: "destructive" });
-    }
-  };
 
   // ---- Goal dialog ----
   const openAddGoal = () => setGoalForm({ ...blankGoalForm(), open: true, mode: "add" });
@@ -479,6 +351,64 @@ const AccountsRunway = ({ email }: { email: string }) => {
     }
   };
 
+  // ---- Loaning power dialog ----
+  const openAddLoan = () => setLoanForm({ ...blankLoanForm(), open: true, mode: "add" });
+  const openEditLoan = (l: FinanceLoaning) => setLoanForm({
+    open: true, mode: "edit", id: l.id,
+    name: l.name, icon: l.icon || "credit-card",
+    limit_amount: String(l.limit_amount), used_amount: l.used_amount ? String(l.used_amount) : "",
+    currency: l.currency, fx_to_base: String(l.fx_to_base),
+    color: l.color ?? "", notes: l.notes ?? "",
+  });
+
+  const saveLoan = async () => {
+    const limit = parseFloat(loanForm.limit_amount);
+    const used = parseFloat(loanForm.used_amount || "0");
+    const fx = parseFloat(loanForm.fx_to_base || "1");
+    if (!loanForm.name.trim() || isNaN(limit) || limit <= 0) {
+      toast({ title: "Name and a credit limit greater than 0 are required", variant: "destructive" });
+      return;
+    }
+    setSavingLoan(true);
+    try {
+      await financeSaveLoaning({
+        requester_email: email,
+        id: loanForm.mode === "edit" ? loanForm.id : undefined,
+        name: loanForm.name.trim(),
+        icon: loanForm.icon,
+        limit_amount: limit,
+        used_amount: isNaN(used) || used < 0 ? 0 : used,
+        currency: loanForm.currency,
+        fx_to_base: isNaN(fx) || fx <= 0 ? 1 : fx,
+        color: loanForm.color.trim() || null,
+        notes: loanForm.notes.trim() || null,
+      });
+      toast({ title: loanForm.mode === "add" ? "Loaning source added" : "Loaning source updated" });
+      setLoanForm(blankLoanForm());
+      fetchAll();
+    } catch (e) {
+      toast({ title: "Save failed", description: e instanceof Error ? e.message : "Try again", variant: "destructive" });
+    } finally {
+      setSavingLoan(false);
+    }
+  };
+
+  const deleteLoan = async (l: FinanceLoaning) => {
+    if (!(await confirm({
+      title: `Delete "${l.name}"?`,
+      description: "This loaning source will be removed; its available credit no longer counts toward Buying Power.",
+      confirmText: "Delete source",
+      tone: "danger",
+    }))) return;
+    try {
+      await financeDeleteLoaning({ requester_email: email, id: l.id });
+      toast({ title: "Deleted" });
+      fetchAll();
+    } catch (e) {
+      toast({ title: "Delete failed", description: e instanceof Error ? e.message : "Try again", variant: "destructive" });
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -496,9 +426,15 @@ const AccountsRunway = ({ email }: { email: string }) => {
   const accounts = overview?.accounts ?? [];
   const totalBalance = overview?.total_balance_base ?? 0;
   const goals = overview?.goals ?? [];
+  const goalsTotal = goals.reduce((sum, g) => sum + (g.target_base ?? g.target_amount ?? 0), 0);
   const allocations = overview?.capital_allocations ?? [];
   const totalAllocation = overview?.total_allocation_base ?? 0;
   const spendable = overview?.spendable_balance_base ?? totalBalance;
+  const loaning = overview?.loaning_power ?? [];
+  const loaningLimit = overview?.total_loaning_limit_base ?? 0;
+  const loaningUsed = overview?.total_loaning_used_base ?? 0;
+  const loaningAvailable = overview?.total_loaning_available_base ?? 0;
+  const buyingPower = overview?.buying_power_base ?? spendable;
 
   // Cash allocation ("hatian") — share of total balance per bank
   const allocation = accounts
@@ -533,30 +469,31 @@ const AccountsRunway = ({ email }: { email: string }) => {
             Combined totals are shown in {base}.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap">
-          <Button variant="outline" size="sm" onClick={openAddAccount}>
-            <Landmark className="w-4 h-4 mr-2" /> Add Bank
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+          <Button variant="outline" size="sm" className="w-full justify-start sm:w-auto sm:min-w-[132px]" onClick={openAddGoal}>
+            <Target className="w-4 h-4 mr-2 shrink-0" /> Add Goal
           </Button>
-          <Button variant="outline" size="sm" onClick={openAddGoal}>
-            <Target className="w-4 h-4 mr-2" /> Add Goal
+          <Button variant="outline" size="sm" className="w-full justify-start sm:w-auto sm:min-w-[132px]" onClick={openAddAlloc}>
+            <Lock className="w-4 h-4 mr-2 shrink-0" /> Add Allocation
           </Button>
-          <Button variant="outline" size="sm" onClick={openAddAlloc}>
-            <Lock className="w-4 h-4 mr-2" /> Add Allocation
-          </Button>
-          <Button size="sm" onClick={openAddRecurring}>
-            <Repeat className="w-4 h-4 mr-2" /> Add Recurring
+          <Button variant="outline" size="sm" className="w-full justify-start sm:w-auto sm:min-w-[132px]" onClick={openAddLoan}>
+            <CreditCard className="w-4 h-4 mr-2 shrink-0" /> Loaning Power
           </Button>
         </div>
       </div>
 
       {/* Summary cards */}
-      <MotionGrid className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <MotionGrid className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <StatCard accent icon={Wallet} label="Total Balance" prefix={`${base} `} value={totalBalance}
           sub={`${accounts.length} account${accounts.length === 1 ? "" : "s"}`} />
         <StatCard accent icon={ShieldCheck} label="Spendable Balance" prefix={`${base} `} value={spendable}
           sub={totalAllocation > 0
             ? <>After <Money prefix={`${base} `} value={totalAllocation} decimals={0} /> reserved</>
             : "Nothing reserved"} />
+        <StatCard accent icon={Zap} label="Buying Power" prefix={`${base} `} value={buyingPower}
+          sub={loaningAvailable > 0
+            ? <>Incl. <Money prefix={`${base} `} value={loaningAvailable} decimals={0} /> credit</>
+            : "No credit lines"} />
         <StatCard icon={TrendingUp} label="Monthly Income" prefix={`${base} `}
           value={overview?.monthly_income_base ?? 0} sub="Recurring" />
         <StatCard icon={TrendingDown} label="Monthly Expenses" prefix={`${base} `}
@@ -585,6 +522,9 @@ const AccountsRunway = ({ email }: { email: string }) => {
               <CardTitle>Financial Goals</CardTitle>
               <CardDescription>
                 Milestones funded by your spendable balance · <span className="font-mono font-medium text-foreground"><Money prefix={`${base} `} value={spendable} /></span>
+                {goals.length > 0 && (
+                  <> · {goals.length} goal{goals.length === 1 ? "" : "s"} totaling <span className="font-mono font-medium text-foreground"><Money prefix={`${base} `} value={goalsTotal} decimals={0} /></span></>
+                )}
               </CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={openAddGoal}>
@@ -672,6 +612,13 @@ const AccountsRunway = ({ email }: { email: string }) => {
               <CardDescription>
                 Reserved capital deducted from your balance · <span className="font-mono font-medium text-foreground"><Money prefix={`${base} `} value={totalAllocation} /></span> of <Money prefix={`${base} `} value={totalBalance} decimals={0} />
               </CardDescription>
+              {/* What's left once every allocation above is actually spent. */}
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-1">
+                <span className="font-mono tabular-nums text-xs font-semibold text-foreground">
+                  <Money prefix={`${base} `} value={spendable} decimals={0} />
+                </span>
+                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">left</span>
+              </div>
             </div>
             <Button variant="outline" size="sm" onClick={openAddAlloc}>
               <Plus className="w-4 h-4 mr-2" /> Add
@@ -729,6 +676,88 @@ const AccountsRunway = ({ email }: { email: string }) => {
                         </div>
                         {a.notes && (
                           <div className="mt-2 text-[11px] text-muted-foreground truncate">{a.notes}</div>
+                        )}
+                      </div>
+                    </div>
+                  </MotionItem>
+                );
+              })}
+            </MotionGrid>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Loaning power (borrowing capacity) */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Loaning Power</CardTitle>
+              <CardDescription>
+                Credit lines you can draw as cash · <span className="font-mono font-medium text-foreground"><Money prefix={`${base} `} value={loaningAvailable} /></span> available of <Money prefix={`${base} `} value={loaningLimit} decimals={0} /> limit
+                {loaningUsed > 0 && <> · <Money prefix={`${base} `} value={loaningUsed} decimals={0} /> drawn</>}
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={openAddLoan}>
+              <Plus className="w-4 h-4 mr-2" /> Add
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loaning.length === 0 ? (
+            <div className="text-center py-10 text-muted-foreground">
+              <CreditCard className="w-10 h-10 mx-auto mb-3 opacity-40" />
+              <p>No loaning sources yet. Add credit lines like “Hexagon CC” that can borrow 50k credit-to-cash.</p>
+            </div>
+          ) : (
+            <MotionGrid className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {loaning.map((l) => {
+                const Icon = loanIcon(l.icon);
+                const accent = l.color || undefined;
+                const limitBase = l.limit_base ?? l.limit_amount;
+                const availBase = l.available_base ?? limitBase;
+                const usedBase = l.used_base ?? 0;
+                const usedPct = limitBase > 0 ? Math.min(100, (usedBase / limitBase) * 100) : 0;
+                return (
+                  <MotionItem key={l.id}>
+                    <div className="group relative rounded-lg border border-border p-4 h-full transition-shadow hover:shadow-[var(--shadow-soft)]">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-muted text-foreground shrink-0"
+                            style={accent ? { background: accent, color: "#fff" } : undefined}>
+                            <Icon className="w-4 h-4" />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="font-semibold truncate">{l.name}</div>
+                            <div className="text-xs text-muted-foreground truncate">
+                              Available <Money value={availBase} prefix={`${base} `} decimals={0} />
+                              {l.currency !== base && <> · {l.currency} <Money value={l.available ?? l.limit_amount} decimals={0} /></>}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditLoan(l)}>
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteLoan(l)}>
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between text-xs mb-1.5">
+                          <span className="font-mono tabular-nums font-semibold text-foreground">{usedPct.toFixed(0)}% used</span>
+                          <span className="text-muted-foreground">
+                            Limit <Money prefix={`${base} `} value={limitBase} decimals={0} />
+                          </span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                          <div className="h-full rounded-full bg-foreground transition-all"
+                            style={{ width: `${Math.min(usedPct, 100)}%`, background: accent }} />
+                        </div>
+                        {l.notes && (
+                          <div className="mt-2 text-[11px] text-muted-foreground truncate">{l.notes}</div>
                         )}
                       </div>
                     </div>
@@ -854,298 +883,6 @@ const AccountsRunway = ({ email }: { email: string }) => {
           </ResponsiveContainer>
         </ChartCard>
       </MotionGrid>
-
-      {/* Manage accounts */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Bank Accounts</CardTitle>
-              <CardDescription>Your balances, each in its own currency</CardDescription>
-            </div>
-            <Button variant="outline" size="sm" onClick={openAddAccount}>
-              <Plus className="w-4 h-4 mr-2" /> Add
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {accounts.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <Landmark className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p>No bank accounts yet. Add one to start tracking balances.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="py-2 pr-3">Bank</th>
-                    <th className="py-2 pr-3">Currency</th>
-                    <th className="py-2 pr-3 text-right">Balance</th>
-                    <th className="py-2 pr-3 text-right">In {base}</th>
-                    <th className="py-2 pr-3 text-right">Share</th>
-                    <th className="py-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accounts.map((a, i) => {
-                    const share = totalBalance > 0 ? ((a.balance_base ?? 0) / totalBalance) * 100 : 0;
-                    return (
-                      <tr key={a.id} className="border-b transition-colors hover:bg-muted/40">
-                        <td className="py-2.5 pr-3 font-medium">
-                          <span className="inline-flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full" style={{ background: MONO_RAMP[i % MONO_RAMP.length] }} />
-                            {a.name}
-                          </span>
-                        </td>
-                        <td className="py-2.5 pr-3 text-muted-foreground">{a.currency}</td>
-                        <td className="py-2.5 pr-3 text-right font-mono tabular-nums font-semibold whitespace-nowrap"><Money prefix={`${a.currency} `} value={a.balance} /></td>
-                        <td className="py-2.5 pr-3 text-right font-mono tabular-nums text-muted-foreground whitespace-nowrap"><Money prefix={`${base} `} value={a.balance_base ?? 0} /></td>
-                        <td className="py-2.5 pr-3 text-right">
-                          <span className="inline-flex items-center gap-2">
-                            <span className="hidden sm:block h-1.5 w-16 rounded-full bg-muted overflow-hidden">
-                              <span className="block h-full bg-neutral-700" style={{ width: `${Math.min(share, 100)}%` }} />
-                            </span>
-                            <span className="font-mono tabular-nums text-xs text-muted-foreground w-10 text-right">{share.toFixed(0)}%</span>
-                          </span>
-                        </td>
-                        <td className="py-2.5">
-                          <div className="flex gap-1 justify-end">
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditAccount(a)}>
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteAccount(a)}>
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Manage recurring */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Recurring Items</CardTitle>
-              <CardDescription>Monthly income & expenses / subscriptions</CardDescription>
-            </div>
-            <Button variant="outline" size="sm" onClick={openAddRecurring}>
-              <Plus className="w-4 h-4 mr-2" /> Add
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {recurring.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <Repeat className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p>No recurring items yet. Add your salary, subscriptions and bills.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="py-2 pr-3">Type</th>
-                    <th className="py-2 pr-3">Label</th>
-                    <th className="py-2 pr-3">Category</th>
-                    <th className="py-2 pr-3">Day</th>
-                    <th className="py-2 pr-3 text-right">Amount</th>
-                    <th className="py-2 pr-3">Status</th>
-                    <th className="py-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recurring.map((r) => (
-                    <tr key={r.id} className={`border-b transition-colors hover:bg-muted/40 ${r.active ? "" : "opacity-50"}`}>
-                      <td className="py-2.5 pr-3"><TypeBadge type={r.type} /></td>
-                      <td className="py-2.5 pr-3 font-medium">{r.label}</td>
-                      <td className="py-2.5 pr-3 text-muted-foreground">{categoryLabel(r.category)}</td>
-                      <td className="py-2.5 pr-3 text-muted-foreground">{r.day_of_month ?? "—"}</td>
-                      <td className="py-2.5 pr-3 text-right font-mono tabular-nums font-semibold whitespace-nowrap">
-                        {r.type === "income" ? "+" : "−"}<Money prefix={`${r.currency} `} value={r.amount} />
-                      </td>
-                      <td className="py-2.5 pr-3 text-xs text-muted-foreground">{r.active ? "Active" : "Paused"}</td>
-                      <td className="py-2.5">
-                        <div className="flex gap-1 justify-end">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditRecurring(r)}>
-                            <Pencil className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRecurring(r)}>
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Account dialog */}
-      <Dialog open={acctForm.open} onOpenChange={(o) => setAcctForm((f) => ({ ...f, open: o }))}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{acctForm.mode === "add" ? "Add Bank Account" : "Edit Bank Account"}</DialogTitle>
-            <DialogDescription>Track a bank or wallet balance.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm font-medium">Bank / Account name *</label>
-              <Input className="mt-1" placeholder="e.g. BPI Savings, GCash"
-                value={acctForm.name}
-                onChange={(e) => setAcctForm((f) => ({ ...f, name: e.target.value }))} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium">Balance *</label>
-                <Input className="mt-1" type="number" step="0.01" placeholder="0.00"
-                  value={acctForm.balance}
-                  onChange={(e) => setAcctForm((f) => ({ ...f, balance: e.target.value }))} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Currency</label>
-                <Select value={acctForm.currency}
-                  onValueChange={(v) => setAcctForm((f) => ({ ...f, currency: v, fx_to_base: v === "PHP" ? "1" : f.fx_to_base }))}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium">Rate → PHP</label>
-                <Input className="mt-1" type="number" step="0.0001" placeholder="1"
-                  disabled={acctForm.currency === "PHP"}
-                  value={acctForm.fx_to_base}
-                  onChange={(e) => setAcctForm((f) => ({ ...f, fx_to_base: e.target.value }))} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Marker</label>
-                <Input className="mt-1" type="color"
-                  value={acctForm.color || "#0a0a0a"}
-                  onChange={(e) => setAcctForm((f) => ({ ...f, color: e.target.value }))} />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" disabled={savingAcct}
-              onClick={() => setAcctForm((f) => ({ ...f, open: false }))}>Cancel</Button>
-            <Button onClick={saveAccount} disabled={savingAcct}>
-              {savingAcct && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {acctForm.mode === "add" ? "Add" : "Save"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Recurring dialog */}
-      <Dialog open={recForm.open} onOpenChange={(o) => setRecForm((f) => ({ ...f, open: o }))}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{recForm.mode === "add" ? "Add Recurring Item" : "Edit Recurring Item"}</DialogTitle>
-            <DialogDescription>A monthly income or expense / subscription.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium">Type *</label>
-                <Select value={recForm.type}
-                  onValueChange={(v) => {
-                    const t = v as TransactionType;
-                    const cats = t === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
-                    setRecForm((f) => ({ ...f, type: t, category: cats[0].value }));
-                  }}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="income">Income</SelectItem>
-                    <SelectItem value="expense">Expense</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Category</label>
-                <Select value={recForm.category} onValueChange={(v) => setRecForm((f) => ({ ...f, category: v }))}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {recCategories.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Label *</label>
-              <Input className="mt-1" placeholder="e.g. Netflix, Salary, Office rent"
-                value={recForm.label}
-                onChange={(e) => setRecForm((f) => ({ ...f, label: e.target.value }))} />
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-1">
-                <label className="text-sm font-medium">Amount *</label>
-                <Input className="mt-1" type="number" step="0.01" min="0" placeholder="0.00"
-                  value={recForm.amount}
-                  onChange={(e) => setRecForm((f) => ({ ...f, amount: e.target.value }))} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Currency</label>
-                <Select value={recForm.currency}
-                  onValueChange={(v) => setRecForm((f) => ({ ...f, currency: v, fx_to_base: v === "PHP" ? "1" : f.fx_to_base }))}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Rate → PHP</label>
-                <Input className="mt-1" type="number" step="0.0001" placeholder="1"
-                  disabled={recForm.currency === "PHP"}
-                  value={recForm.fx_to_base}
-                  onChange={(e) => setRecForm((f) => ({ ...f, fx_to_base: e.target.value }))} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 items-end">
-              <div>
-                <label className="text-sm font-medium">Billing day (1–31)</label>
-                <Input className="mt-1" type="number" min="1" max="31" placeholder="Optional"
-                  value={recForm.day_of_month}
-                  onChange={(e) => setRecForm((f) => ({ ...f, day_of_month: e.target.value }))} />
-              </div>
-              <div className="flex items-center gap-2 pb-2">
-                <Switch checked={recForm.active}
-                  onCheckedChange={(c) => setRecForm((f) => ({ ...f, active: c }))} />
-                <span className="text-sm">{recForm.active ? "Active" : "Paused"}</span>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Notes</label>
-              <Textarea className="mt-1" rows={2} placeholder="Optional"
-                value={recForm.notes}
-                onChange={(e) => setRecForm((f) => ({ ...f, notes: e.target.value }))} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" disabled={savingRec}
-              onClick={() => setRecForm((f) => ({ ...f, open: false }))}>Cancel</Button>
-            <Button onClick={saveRecurring} disabled={savingRec}>
-              {savingRec && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {recForm.mode === "add" ? "Add" : "Save"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Goal dialog */}
       <Dialog open={goalForm.open} onOpenChange={(o) => setGoalForm((f) => ({ ...f, open: o }))}>
@@ -1322,6 +1059,99 @@ const AccountsRunway = ({ email }: { email: string }) => {
             <Button onClick={saveAlloc} disabled={savingAlloc}>
               {savingAlloc && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {allocForm.mode === "add" ? "Add" : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Loaning power dialog */}
+      <Dialog open={loanForm.open} onOpenChange={(o) => setLoanForm((f) => ({ ...f, open: o }))}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{loanForm.mode === "add" ? "Add Loaning Power" : "Edit Loaning Power"}</DialogTitle>
+            <DialogDescription>
+              A credit line you can draw as cash — e.g. “Hexagon CC” that can borrow 50k credit-to-cash. Available credit is added to your Buying Power.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium">Source name *</label>
+              <Input className="mt-1" placeholder="e.g. Hexagon CC, BPI Cash Loan, BDO Credit Line"
+                value={loanForm.name}
+                onChange={(e) => setLoanForm((f) => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Icon</label>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {LOAN_ICON_KEYS.map((key) => {
+                  const Ic = LOAN_ICONS[key];
+                  const active = loanForm.icon === key;
+                  return (
+                    <button key={key} type="button"
+                      onClick={() => setLoanForm((f) => ({ ...f, icon: key }))}
+                      className={cn(
+                        "flex h-9 w-9 items-center justify-center rounded-md border transition-colors",
+                        active ? "border-foreground bg-foreground text-background"
+                               : "border-border text-muted-foreground hover:bg-muted",
+                      )}>
+                      <Ic className="w-4 h-4" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium">Credit limit *</label>
+                <Input className="mt-1" type="number" step="0.01" min="0" placeholder="50000.00"
+                  value={loanForm.limit_amount}
+                  onChange={(e) => setLoanForm((f) => ({ ...f, limit_amount: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Already used</label>
+                <Input className="mt-1" type="number" step="0.01" min="0" placeholder="0.00"
+                  value={loanForm.used_amount}
+                  onChange={(e) => setLoanForm((f) => ({ ...f, used_amount: e.target.value }))} />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="text-sm font-medium">Currency</label>
+                <Select value={loanForm.currency}
+                  onValueChange={(v) => setLoanForm((f) => ({ ...f, currency: v, fx_to_base: v === "PHP" ? "1" : f.fx_to_base }))}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Rate → PHP</label>
+                <Input className="mt-1" type="number" step="0.0001" placeholder="1"
+                  disabled={loanForm.currency === "PHP"}
+                  value={loanForm.fx_to_base}
+                  onChange={(e) => setLoanForm((f) => ({ ...f, fx_to_base: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Marker</label>
+                <Input className="mt-1" type="color"
+                  value={loanForm.color || "#2b2b2b"}
+                  onChange={(e) => setLoanForm((f) => ({ ...f, color: e.target.value }))} />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Notes</label>
+              <Textarea className="mt-1" rows={2} placeholder="Optional — APR, terms, draw conditions…"
+                value={loanForm.notes}
+                onChange={(e) => setLoanForm((f) => ({ ...f, notes: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={savingLoan}
+              onClick={() => setLoanForm((f) => ({ ...f, open: false }))}>Cancel</Button>
+            <Button onClick={saveLoan} disabled={savingLoan}>
+              {savingLoan && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {loanForm.mode === "add" ? "Add" : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2002,6 +1832,40 @@ const CashFlow = ({ email }: { email: string }) => {
 };
 
 // ============================================================
+//  Accounts area — Overview & Runway + Bank Accounts sub-pages
+// ============================================================
+
+const AccountsArea = ({ email }: { email: string }) => {
+  const reduce = useReducedMotion();
+  const [sub, setSub] = useState<"runway" | "banks" | "recurring">("runway");
+  return (
+    <div className="space-y-6">
+      <Tabs value={sub} onValueChange={(v) => setSub(v as "runway" | "banks" | "recurring")}>
+        <TabsList>
+          <TabsTrigger value="runway">Overview &amp; Runway</TabsTrigger>
+          <TabsTrigger value="banks">Bank Accounts</TabsTrigger>
+          <TabsTrigger value="recurring">Recurring</TabsTrigger>
+        </TabsList>
+      </Tabs>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={sub}
+          initial={reduce ? false : { opacity: 0, y: 8 }}
+          animate={reduce ? undefined : { opacity: 1, y: 0 }}
+          exit={reduce ? undefined : { opacity: 0, y: -8 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="space-y-6"
+        >
+          {sub === "banks" ? <BankAccounts email={email} />
+            : sub === "recurring" ? <RecurringItems email={email} />
+            : <AccountsRunway email={email} />}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ============================================================
 //  Page shell
 // ============================================================
 
@@ -2051,7 +1915,7 @@ const AdminFinance = () => {
             transition={{ duration: 0.25, ease: "easeOut" }}
             className="space-y-6"
           >
-            {view === "accounts" ? <AccountsRunway email={email} /> : <CashFlow email={email} />}
+            {view === "accounts" ? <AccountsArea email={email} /> : <CashFlow email={email} />}
           </motion.div>
         </AnimatePresence>
       </div>

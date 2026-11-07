@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import { useThemeColor } from "@/lib/theme-color"
 
 interface WavesProps {
   /**
@@ -121,6 +122,11 @@ export function Waves({
   maxCursorMove = 100,
   className,
 }: WavesProps) {
+  // Canvas cannot parse `hsl(var(--foreground))`; resolve the token to a
+  // concrete colour so the waves follow the theme instead of falling back to
+  // the canvas default of black.
+  const resolvedLineColor = useThemeColor(lineColor)
+
   const containerRef = useRef(null)
   const canvasRef = useRef(null)
   const ctxRef = useRef(null)
@@ -229,7 +235,7 @@ export function Waves({
       const ctx = ctxRef.current
       ctx.clearRect(0, 0, width, height)
       ctx.beginPath()
-      ctx.strokeStyle = lineColor
+      ctx.strokeStyle = resolvedLineColor
       linesRef.current.forEach((points) => {
         let p1 = moved(points[0], false)
         ctx.moveTo(p1.x, p1.y)
@@ -246,6 +252,8 @@ export function Waves({
       })
       ctx.stroke()
     }
+
+    let frameId
 
     function tick(t) {
       const mouse = mouseRef.current
@@ -268,7 +276,7 @@ export function Waves({
 
       movePoints(t)
       drawLines()
-      requestAnimationFrame(tick)
+      frameId = requestAnimationFrame(tick)
     }
 
     function onResize() {
@@ -299,18 +307,19 @@ export function Waves({
 
     setSize()
     setLines()
-    requestAnimationFrame(tick)
+    frameId = requestAnimationFrame(tick)
     window.addEventListener("resize", onResize)
     window.addEventListener("mousemove", onMouseMove)
     window.addEventListener("touchmove", onTouchMove, { passive: false })
 
     return () => {
+      cancelAnimationFrame(frameId)
       window.removeEventListener("resize", onResize)
       window.removeEventListener("mousemove", onMouseMove)
       window.removeEventListener("touchmove", onTouchMove)
     }
   }, [
-    lineColor,
+    resolvedLineColor,
     backgroundColor,
     waveSpeedX,
     waveSpeedY,

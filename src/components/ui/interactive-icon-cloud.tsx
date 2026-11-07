@@ -9,6 +9,7 @@ import {
   renderSimpleIcon,
   SimpleIcon,
 } from "react-icon-cloud"
+import { resolveThemeColorHex } from "@/lib/theme-color"
 
 export const cloudProps: Omit<ICloud, "children"> = {
   containerProps: {
@@ -38,9 +39,16 @@ export const cloudProps: Omit<ICloud, "children"> = {
 }
 
 export const renderCustomIcon = (icon: SimpleIcon, theme: string) => {
-  // Use black and white colors for services section
-  const bgHex = theme === "light" ? "#ffffff" : "#000000"
-  const fallbackHex = theme === "light" ? "#000000" : "#ffffff"
+  // Read the design tokens rather than hardcoding black/white, so the cloud
+  // tracks the palette in src/index.css. `renderSimpleIcon` only takes hex.
+  const bgHex = resolveThemeColorHex(
+    "hsl(var(--background))",
+    theme === "light" ? "#ffffff" : "#000000",
+  )
+  const fallbackHex = resolveThemeColorHex(
+    "hsl(var(--foreground))",
+    theme === "light" ? "#000000" : "#ffffff",
+  )
   const minContrastRatio = theme === "dark" ? 2 : 1.2
 
   return renderSimpleIcon({

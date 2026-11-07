@@ -13,3 +13,4 @@ export const API_BASE = import.meta.env.VITE_API_URL ?? "/napai-api";
  * Prod: point at the standalone Node render service, e.g. "https://render.nap-ai.com".
  */
 export const API_RENDER_BASE = "";
+ 
